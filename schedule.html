@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Schedule | Cloudcamp</title>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
+        <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
+        
+        <script type="text/javascript" async="" src="js/ga.js" style=""></script>
+        <script type="text/javascript" async="" src="js/aDOip22BsLewfIxSfkMvA.js"></script>
+        <script type="text/javascript" src="js/cloudcamp.js"></script>
+        <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/underscore-min.js"></script>
+        
+        <script id="addJS">
+            jQuery(document).ready(function($) {
+                
+                var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+    
+                var baseHost = 'http://api.campsite.org';
+                var cloudcamp_gid = 20;
+                var upcomingEventsURI = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=>'+(new Date()).toString()+'&sort_by=-starts_at';
+                var pastEventsURI     = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=<'+(new Date()).toString()+'&sort_by=starts_at';
+            
+                var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
+    
+                var now = new Date();
+                // var upcomingURI = eventsURI + '&starts_at=>' + (new Date());
+                // var pastURI = eventsURI + '&ends_at=<' + (new Date());
+                
+                $.getJSON(upcomingEventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
+                    $("#upcoming").append(loadEvents(data,template));
+                });
+                $.getJSON(pastEventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
+                    $("#recent").append(loadEvents(data,template));
+                });
+            });
+            
+            function loadEvents(eventData, template) {
+                var allEvents = "";
+                _.each(eventData, function (event) {
+                    var starts_at = new Date(event.starts_at);
+                    var evt_temp = template;
+                    evt_temp = evt_temp.replace(/{date}/, getDate(starts_at));
+                    evt_temp = evt_temp.replace(/{name}/, event.name);
+                    evt_temp = evt_temp.replace(/{location}/, event.location);
+                    evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
+                    allEvents += evt_temp;
+                });
+                return allEvents;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="shell">
+                <div id="header">
+                    <h1 id="logo" class="notext"><a href="index.html">
+                        <img class="left" src="img/logo.png">
+                    </a></h1>
+                    <div class="socials right">
+                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
+                    </div>
+                    <div class="cl">&nbsp;</div>
+                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                </div>
+                <div id="nav">
+                    <ul class="left">
+                        <li class="left"><a href="index.html" class="">Home</a></li>
+                        <li class="left"><a href="schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="howto.html" class="">How to Camp</a></li>
+                        <li class="left"><a href="organizers.html" class="">Organizers</a></li>
+                        <li class="left"><a href="sponsors.html" class="">Sponsors</a></li>
+                        <li class="left"><a href="mission.html" class="">Mission</a></li>
+                        <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
+                        <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
+                    </ul>
+                    <ul class="right">&nbsp;</ul>
+                    <div class="cl">&nbsp;</div>
+                </div>     
+                <div id="main">
+                    <div class="content left">
+                        <div class="section recent-events">
+                    <h1>Upcoming Events</h1>
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="upcoming"><!-- js fill in here --></tbody>
+                </table>
+                </div>
+                        <div style="margin-top: 40px"></div>
+                        <div class="section recent-events">
+                            <h1>Recent Events</h1>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Event</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent"><!-- js fill in here --></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="sidebar right">
+                        <div class="section">
+                            <h5>Top Sponsors</h5>
+                            <ul>
+                                <li><img src="img/side-partner1.jpg" alt="" /></li>
+                                <li><img src="img/side-partner3.jpg" alt="" /></li>
+                                <li><img src="img/side-partner4.jpg" alt="" /></li>
+                                <li><img src="img/side-partner5.jpg" alt="" /></li>
+                                <li><img src="img/side-partner6.jpg" alt="" /></li>
+                                <li><img src="img/side-partner7.jpg" alt="" /></li>
+                                <li><img src="img/virtustream_logo.jpg" alt="" /></li>
+                                <li><img src="img/side-partner8.jpg" alt="" /></li>
+                                <li><img src="img/side-partner9.jpg" alt="" /></li>
+                                <li><img src="img/sponsor1.jpg" alt="" /></li>
+                                <li><img src="img/sponsor2.jpg" alt="" /></li>
+                                <li><img src="img/sponsor3.jpg" alt="" /></li>
+                                <li><img src="img/sponsor4.jpg" alt="" /></li>
+                                <li><img src="img/sponsor5.jpg" alt="" /></li>
+                                <li><img src="img/sponsor6.jpg" alt="" /></li>
+                                <li><img src="img/sponsor7.jpg" alt="" /></li>
+                                <li><img src="img/sponsor8.jpg" alt="" /></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="cl"></div>
+                    <div class="section sponsors-list">
+                        <h5><a href="sponsors.html" class="right">Become a Sponsor &raquo;</a> Our Sponsors</h5>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td><img src="img/sponsor9.jpg" alt="" /></td>
+                                <td><img src="img/sponsor10.jpg" alt="" /></td>
+                                <td><img src="img/sponsor11.jpg" alt="" /></td>
+                                <td><img src="img/sponsor12.jpg" alt="" /></td>
+                                <td><img src="img/sponsor13.jpg" alt="" /></td>
+                                <td><img src="img/sponsor14.jpg" alt="" /></td>
+                                <td><img src="img/sponsor15.jpg" alt="" /></td>
+                                <td><img src="img/sponsor16.jpg" alt="" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src="img/sponsor17.jpg" alt="" /></td>
+                                <td><img src="img/sponsor18.jpg" alt="" /></td>
+                                <td><img src="img/sponsor19.jpg" alt="" /></td>
+                                <td><img src="img/sponsor20.jpg" alt="" /></td>
+                                <td><img src="img/sponsor21.jpg" alt="" /></td>
+                                <td><img src="img/sponsor22.jpg" alt="" /></td>
+                                <td><img src="img/sponsor23.jpg" alt="" /></td>
+                                <td><img src="img/sponsor24.jpg" alt="" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src="img/sponsor25.jpg" alt="" /></td>
+                                <td><img src="img/sponsor26.jpg" alt="" /></td>
+                                <td><img src="img/sponsor27.jpg" alt="" /></td>
+                                <td><img src="img/sponsor28.jpg" alt="" /></td>
+                                <td><img src="img/sponsor29.jpg" alt="" /></td>
+                                <td><img src="img/sponsor30.jpg" alt="" /></td>
+                                <td><img src="img/sponsor31.jpg" alt="" /></td>
+                                <td><img src="img/sponsor32.jpg" alt="" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src="img/sponsor33.jpg" alt="" /></td>
+                                <td><img src="img/sponsor34.jpg" alt="" /></td>
+                                <td><img src="img/sponsor35.jpg" alt="" /></td>
+                                <td><img src="img/sponsor36.jpg" alt="" /></td>
+                                <td><img src="img/sponsor37.jpg" alt="" /></td>
+                                <td><img src="img/sponsor38.jpg" alt="" /></td>
+                                <td><img src="img/sponsor40.jpg" alt="" /></td>
+                                <td><img src="img/sponsor39.jpg" alt="" /> <img src="img/sponsor41.jpg" alt="" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src="img/sponsor42.jpg" alt="" /></td>
+                                <td><img src="img/sponsor43.jpg" alt="" /></td>
+                                <td><img src="img/sponsor44.jpg" alt="" /></td>
+                                <td><img src="img/sponsor45.jpg" alt="" /></td>
+                                <td><img src="img/sponsor46.jpg" alt="" /></td>
+                                <td><img src="img/sponsor47.jpg" alt="" /></td>
+                                <td><img src="img/sponsor48.jpg" alt="" /></td>
+                                <td><img src="img/sponsor49.jpg" alt="" /></td>
+                            </tr>
+                            <tr>
+                                <td><img src="img/sponsor50.jpg" alt="" /></td>
+                                <td><img src="img/sponsor51.jpg" alt="" /></td>
+                                <td><img src="img/sponsor52.jpg" alt="" /></td>
+                                <td><img src="img/sponsor53.jpg" alt="" /></td>
+                                <td><img src="img/sponsor54.jpg" alt="" /></td>
+                                <td><img src="img/sponsor55.jpg" alt="" /></td>
+                                <td><img src="img/sponsor56.jpg" alt="" /></td>
+                                <td><img src="img/sponsor57.jpg" alt="" /></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="footer">
+                        <div class="foot-nav left">
+                        © 2012-2014 CloudCamp.  All rights reserved.
+                        </div>
+                        <div class="socials right">
+                            <a href="#">Organizers/Sponsers Login</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            initPage();
+        </script>
+    </body>
+</html>

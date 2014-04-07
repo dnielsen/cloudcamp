@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html> 
+    <head>
+        <title>Cloudcamp Event</title>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
+        <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
+        
+        <script type="text/javascript" async="" src="js/ga.js" style=""></script>
+        <script type="text/javascript" async="" src="js/aDOip22BsLewfIxSfkMvA.js"></script>
+        <script type="text/javascript" src="js/cloudcamp.js"></script>
+        <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/underscore-min.js"></script>
+        
+        <script id="addJS">
+            function getParameterByName(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+                return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+            jQuery(document).ready(function($) {
+                var id = parseInt(getParameterByName('id'));
+                if(!_.isNumber(id)) {
+                    alert("Invalid id");
+                    return;
+                }
+                var baseHost = 'http://api.campsite.org';
+                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.slug';
+                
+                if(id == 501) {
+                    var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
+                    extraSponsors += '<li><a target="_blank" href="http://www.mongodb.org" target="_blank"><img src="img/MongoDB.png" alt="MongoDB"></a></li>';
+                    $('.sponsors-sidebar').prepend(extraSponsors);               
+                }
+
+                $.getJSON(eventsURI, function(data) {
+                    document.title = data.name;
+                    
+                    var starts_at = new Date(data.starts_at);
+                    var date_str = "(" + getDate(starts_at) + ")";
+                    $("#event-title").html(data.name + " " + date_str );
+                    $("#content").html( decodeURIComponent(data.content) );
+                    
+                    
+                    var regBtn = $('#register-button');
+                    regBtn.attr('target', '_blank');
+                    if (data.external_url !== null) {
+                        regBtn.attr('href', data.external_url);
+                    } else {
+                        regBtn.attr('href', 'http://www.campsite.org/'+data.parent_group.slug+'/event/'+id);
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="shell">
+                <div id="header">
+                    <h1 id="logo" class="notext"><a href="index.html">
+                        <img class="left" src="img/logo.png">
+                    </a></h1>
+                    <div class="socials right">
+                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
+                    </div>
+                    <div class="cl">&nbsp;</div>
+                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                </div>
+                <div id="nav">
+                    <ul class="left">
+                        <li class="left"><a href="index.html" class="">Home</a></li>
+                        <li class="left"><a href="schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="howto.html" class="">How to Camp</a></li>
+                        <li class="left"><a href="organizers.html" class="">Organizers</a></li>
+                        <li class="left"><a href="sponsors.html" class="">Sponsors</a></li>
+                        <li class="left"><a href="mission.html" class="">Mission</a></li>
+                        <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
+                        <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
+                    </ul>
+                    <ul class="right">&nbsp;</ul>
+                    <div class="cl">&nbsp;</div>
+                </div>
+                <div id="main">
+                    <div class="content left">
+                        <h1 id='event-title'></h1>
+                        <div class="widget-content">
+                            <p><a id="register-button" href="#" class="btn">Register for event</a></p>
+                        </div>
+                        <div>
+                            <div id="content"><!-- event details here --></div>
+                            <p>&nbsp;</p>
+                        </div>
+                    </div>
+                    <div class="sidebar right">
+                        <div class="section">
+                            <h5>Sponsors</h5>
+                            <ul class="sponsors-sidebar">
+                                <li>
+                                    <a href="http://www.cohesiveft.com">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/CohesiveFT-Logo_black.png" alt="CohesiveFT" />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="http://www.brightbox.co.uk">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/brightbox_logo.jpg" alt="Brightbox" />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="http://dbcloudexchange.com/en-uk/">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/DB_Cloud-Exchange__rgb_DINA4.png" alt="Deutsche Boerse Cloud Exchange" />
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="cl"></div>
+                        <div id="footer">
+                            <div class="foot-nav left">
+                                © 2012-2014 CloudCamp.  All rights reserved.
+                            </div>
+                            <div class="socials right">
+                                <a href="#">Organizers/Sponsers Login</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <script type="text/javascript">
+            initPage();
+        </script>
+    </body>
+</html>

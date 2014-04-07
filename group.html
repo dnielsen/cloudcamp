@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--
+            .htaccess:
+                -> GET      cloudcamp.org/{group_slug}
+                <- RESPONSE cloudcamp.org/group.html?slug=:slug
+        -->
+
+        <script>
+            var slug = getParameter('slug');
+            window.history.replaceState(null, '', slug);
+
+            $.getJSON('api.campsite.org/events?parent_group="slug=' + slug + '"', function(groupEvents) {
+                // If there are upcoming events, populate page with next event
+                // else if there are past events, populate page with most recent event
+                // else group description
+            });
+        </script>
+    </head>
+
+    <body>
+        <!-- identical to event page -->
+        <!-- also have a group description div, in case there are no events (new group) -->
+    </body>
+</html>
