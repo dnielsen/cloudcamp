@@ -6,8 +6,6 @@
         <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
         
-        <script type="text/javascript" async="" src="js/ga.js" style=""></script>
-        <script type="text/javascript" async="" src="js/aDOip22BsLewfIxSfkMvA.js"></script>
         <script type="text/javascript" src="js/cloudcamp.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
@@ -15,39 +13,39 @@
         <script id="addJS">
             jQuery(document).ready(function($) {
                 
-                var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-    
                 var baseHost = 'http://api.campsite.org';
                 var cloudcamp_gid = 20;
+                var eventsURI = baseHost + '/groups/{gid}/events';
+                
                 var upcomingEventsURI = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=>'+(new Date()).toString()+'&sort_by=-starts_at';
                 var pastEventsURI     = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=<'+(new Date()).toString()+'&sort_by=starts_at';
             
                 var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
     
                 var now = new Date();
-                // var upcomingURI = eventsURI + '&starts_at=>' + (new Date());
-                // var pastURI = eventsURI + '&ends_at=<' + (new Date());
-                
-                $.getJSON(upcomingEventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
-                    $("#upcoming").append(loadEvents(data,template));
-                });
-                $.getJSON(pastEventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
-                    $("#recent").append(loadEvents(data,template));
+                $.getJSON(eventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
+                    var future = $("#upcoming");
+                    var past = $("#recent");
+                    _.each(data, function (event) {
+                        var starts_at = new Date(event.starts_at);
+                        var ends_at = new Date(event.ends_at);
+                        if(ends_at.getTime() >= now.getTime()) {
+                            future.append(render_template(event,template));
+                        } else if(starts_at.getTime() < now.getTime()) {
+                            past.append(render_template(event,template));
+                        }
+                    });
                 });
             });
-            
-            function loadEvents(eventData, template) {
-                var allEvents = "";
-                _.each(eventData, function (event) {
-                    var starts_at = new Date(event.starts_at);
-                    var evt_temp = template;
-                    evt_temp = evt_temp.replace(/{date}/, getDate(starts_at));
-                    evt_temp = evt_temp.replace(/{name}/, event.name);
-                    evt_temp = evt_temp.replace(/{location}/, event.location);
-                    evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-                    allEvents += evt_temp;
-                });
-                return allEvents;
+
+            function render_template(event, template) {
+                var starts_at = new Date(event.starts_at);
+                var event_html = new String(template);
+                event_html = event_html.replace(/{date}/, getDate(starts_at));
+                event_html = event_html.replace(/{name}/, event.name);
+                event_html = event_html.replace(/{location}/, event.location);
+                event_html = event_html.replace(/{link}/, "event.html?id="+event.id);
+                return event_html;
             }
         </script>
     </head>
