@@ -46,7 +46,7 @@
                             evt_temp = evt_temp.replace(/{name}/, event.name);
                             evt_temp = evt_temp.replace(/{location}/, event.location);
                             evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-                        selector.append(evt_temp);
+                        selector.prepend(evt_temp);
                     });
                 });
             });
