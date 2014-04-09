@@ -10,6 +10,12 @@
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
+        <script type="text/javascript">
+            $.getJSON('slug_mappings.json', function(mappings) {
+                inverse_mapping = _.invert(mappings);
+            });
+        </script>
+
         <script id="addJS">
             jQuery(document).ready(function($) {
                 var id = parseInt(getParameterByName('id'));
@@ -18,7 +24,7 @@
                     return;
                 }
                 var baseHost = 'http://api.campsite.org';
-                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.slug';
+                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id';
                 
                 if(id == 501) {
                     var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
@@ -29,7 +35,11 @@
 
                 $.getJSON(eventsURI, function(data) {
                     document.title = data.name;
-                    window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
+
+                    if(!_.isUndefined(inverse_mapping)) {
+                        var slug = inverse_mapping[data.parent_group.id];
+                        window.history.replaceState(null, '', slug+'/'+id);
+                    }
                     
                     var starts_at = new Date(data.starts_at);
                     var date_str = "(" + getDate(starts_at) + ")";
