@@ -6,19 +6,11 @@
         <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
         
-        <script type="text/javascript" async="" src="js/ga.js" style=""></script>
-        <script type="text/javascript" async="" src="js/aDOip22BsLewfIxSfkMvA.js"></script>
         <script type="text/javascript" src="js/cloudcamp.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
         <script id="addJS">
-            function getParameterByName(name) {
-                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-                    results = regex.exec(location.search);
-                return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-            }
             jQuery(document).ready(function($) {
                 var id = parseInt(getParameterByName('id'));
                 if(!_.isNumber(id)) {

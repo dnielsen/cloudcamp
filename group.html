@@ -1,26 +1,166 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <!--
-            .htaccess:
-                -> GET      cloudcamp.org/{group_slug}
-                <- RESPONSE cloudcamp.org/group.html?slug=:slug
-        -->
-
+        <title>Cloudcamp Group</title>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
+        <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
+        
+        <script type="text/javascript" src="js/cloudcamp.js"></script>
+        <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/underscore-min.js"></script>
         <script>
-            var slug = getParameter('slug');
+        
+            var slug = getParameterByName('slug');
             window.history.replaceState(null, '', slug);
+            
+            $.getJSON('slug_mappings.json', function(mappings) {
+                if(!_.has(mappings, slug)) {
+                    $(".content").append("Group '"+slug+"' not found, please provide a valid group");
+                    return;
+                } 
+                var gid = mappings[slug];
+                var fields = 'fields=starts_at,ends_at,name,content,external_url,parent_group.slug&';
+                var event_data_uri = 'http://api.campsite.org/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
+                $.getJSON(event_data_uri, function(groupEvents) {
+                    var the_event;
+                    var is_upcoming = true;
+                    
+                    var now = Date.now();
+                    var upcoming = [];
+                    var past = [];
+                    _.each(groupEvents, function(event) {
+                        var starts_at = new Date(event.starts_at);
+                        var ends_at = new Date(event.ends_at);
+                        if( starts_at.getTime() > now)
+                            upcoming.unshift(event);
+                        else if(ends_at.getTime() < now)
+                            past.push(event);
+                    });
 
-            $.getJSON('api.campsite.org/events?parent_group="slug=' + slug + '"', function(groupEvents) {
-                // If there are upcoming events, populate page with next event
-                // else if there are past events, populate page with most recent event
-                // else group description
+                    if(upcoming.length > 0) {
+                        the_event = upcoming[0];
+                    } else if(past.length > 0) {
+                        the_event = past[0];
+                        is_upcoming = false;
+                    }
+
+                    var regBtn = $('#register-button');
+                    if(_.isUndefined(the_event)) {
+                        var group_uri = "http://api.campsite.org/groups/"+gid+"?fields=description,name";
+                        $.getJSON(group_uri, function(group_data) {
+                            regBtn.remove();
+                            $("#event-title").html(group_data.name);
+                            $("#content").html( decodeURIComponent(group_data.description) );
+                        });
+                    } else {
+                        if(!is_upcoming) {
+                            regBtn.remove();
+                            document.title = "Most Recent: " + the_event.name;
+                        } else {
+                            document.title = "Next Event: " + the_event.name;
+
+                            regBtn.attr('target', '_blank');
+                            if (the_event.external_url !== null) {
+                                regBtn.attr('href', the_event.external_url);
+                            } else {
+                                regBtn.attr('href', 
+                                    'http://www.campsite.org/'+the_event.parent_group.slug+'/event/'+id);
+                            }
+                        }
+                        
+                        var starts_at = new Date(the_event.starts_at);
+                        var date_str = "(" + getDate(starts_at) + ")";
+                        $("#event-title").html(the_event.name + " " + date_str );
+                        $("#content").html( decodeURIComponent(the_event.content) );
+
+                        if(slug == 'london') {
+                            var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
+                            extraSponsors += '<li><a target="_blank" href="http://www.mongodb.org" target="_blank"><img src="img/MongoDB.png" alt="MongoDB"></a></li>';
+                            $('.sponsors-sidebar').prepend(extraSponsors);               
+                        }
+                    }
+                    
+                    
+                });
             });
         </script>
     </head>
 
     <body>
-        <!-- identical to event page -->
-        <!-- also have a group description div, in case there are no events (new group) -->
+        <div id="wrap">
+            <div class="shell">
+                <div id="header">
+                    <h1 id="logo" class="notext"><a href="index.html">
+                        <img class="left" src="img/logo.png">
+                    </a></h1>
+                    <div class="socials right">
+                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
+                    </div>
+                    <div class="cl">&nbsp;</div>
+                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                </div>
+                <div id="nav">
+                    <ul class="left">
+                        <li class="left"><a href="index.html" class="">Home</a></li>
+                        <li class="left"><a href="schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="howto.html" class="">How to Camp</a></li>
+                        <li class="left"><a href="organizers.html" class="">Organizers</a></li>
+                        <li class="left"><a href="sponsors.html" class="">Sponsors</a></li>
+                        <li class="left"><a href="mission.html" class="">Mission</a></li>
+                        <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
+                        <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
+                    </ul>
+                    <ul class="right">&nbsp;</ul>
+                    <div class="cl">&nbsp;</div>
+                </div>
+                <div id="main">
+                    <div class="content left">
+                        <h1 id='event-title'></h1>
+                        <div class="widget-content">
+                            <p><a id="register-button" href="#" class="btn">Register for event</a></p>
+                        </div>
+                        <div>
+                            <div id="content"><!-- event details here --></div>
+                            <p>&nbsp;</p>
+                        </div>
+                    </div>
+                    <div class="sidebar right">
+                        <div class="section">
+                            <h5>Sponsors</h5>
+                            <ul class="sponsors-sidebar">
+                                <li>
+                                    <a href="http://www.cohesiveft.com">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/CohesiveFT-Logo_black.png" alt="CohesiveFT" />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="http://www.brightbox.co.uk">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/brightbox_logo.jpg" alt="Brightbox" />
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="http://dbcloudexchange.com/en-uk/">
+                                        <img src="http://s3.amazonaws.com/platformd-testing/media/DB_Cloud-Exchange__rgb_DINA4.png" alt="Deutsche Boerse Cloud Exchange" />
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="cl"></div>
+                        <div id="footer">
+                            <div class="foot-nav left">
+                                © 2012-2014 CloudCamp.  All rights reserved.
+                            </div>
+                            <div class="socials right">
+                                <a href="#">Organizers/Sponsers Login</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <script type="text/javascript">
+            initPage();
+        </script>
     </body>
 </html>
