@@ -1,7 +1,5 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    RewriteRule london$ http://www.cloudcamp.org/event.html?id=501
-
+    RewriteRule ^([a-zA-Z0-9_-]+)[/]*$ http://%{HTTP_HOST}/group.html?slug=$1
+    RewriteRule ^([a-zA-Z0-9_-]+)/([0-9]+)[/]* http://%{HTTP_HOST}/event.html?id=$2
 </IfModule>
-
