@@ -1,0 +1,13 @@
+{
+    "community_id" : 20,
+    "slugs" : {
+        "london": 401,
+        "sacramento": 461,
+        "chicago": 471,
+        "sf": 161,
+        "bd": 23,
+        "brac": 24,
+        "daffodil": 25,
+        "dhaka": 26
+    }
+}

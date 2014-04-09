@@ -14,7 +14,8 @@
             var slug = getParameterByName('slug');
             window.history.replaceState(null, '', slug);
             
-            $.getJSON('slug_mappings.json', function(mappings) {
+            $.getJSON('properties.json', function(properties) {
+                var mappings = properties.slugs;
                 if(!_.has(mappings, slug)) {
                     $(".content").append('The group ' + slug + ' does not exist on this site.');
                     return;
