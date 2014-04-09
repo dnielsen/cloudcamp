@@ -13,32 +13,35 @@
         <script type="text/javascript" src="js/underscore-min.js"></script>
 
         <script id="addJS">
-            jQuery(document).ready(function($) {
-                var baseHost = 'http://api.campsite.org';
-                var cloudcamp_gid = 20;
-                var groupsURI = baseHost + '/groups/{gid}?fields=description';
-                var eventsURI = baseHost + '/groups/{gid}/events';
-                
-                var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
-    
-                var now = new Date();
-                $.getJSON(groupsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
-                    $("#desc").html(data.description);
-                });
-                $.getJSON(eventsURI.replace(/{gid}/,cloudcamp_gid), function(data) {
-                    var selector = $("#upcoming");
-                    _.each(data, function (event) {
-                        var starts_at = new Date(event.starts_at);
-                        var ends_at = new Date(event.ends_at);
-                        if(ends_at.getTime() < now.getTime()) {
-                            return;
-                        }
+            $.getJSON('properties.json', function(properties) {
+                var group_id = properties.community_id;
 
-                        var evt_temp = template.replace(/{date}/, getDate(starts_at));
-                            evt_temp = evt_temp.replace(/{name}/, event.name);
-                            evt_temp = evt_temp.replace(/{location}/, event.location);
-                            evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-                        selector.prepend(evt_temp);
+                jQuery(document).ready(function($) {
+                    var baseHost = 'http://api.campsite.org';
+                    var groupsURI = baseHost + '/groups/{gid}?fields=description';
+                    var eventsURI = baseHost + '/groups/{gid}/events';
+                    
+                    var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
+        
+                    var now = new Date();
+                    $.getJSON(groupsURI.replace(/{gid}/,group_id), function(data) {
+                        $("#desc").html(data.description);
+                    });
+                    $.getJSON(eventsURI.replace(/{gid}/,group_id), function(data) {
+                        var selector = $("#upcoming");
+                        _.each(data, function (event) {
+                            var starts_at = new Date(event.starts_at);
+                            var ends_at = new Date(event.ends_at);
+                            if(ends_at.getTime() < now.getTime()) {
+                                return;
+                            }
+
+                            var evt_temp = template.replace(/{date}/, getDate(starts_at));
+                                evt_temp = evt_temp.replace(/{name}/, event.name);
+                                evt_temp = evt_temp.replace(/{location}/, event.location);
+                                evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
+                            selector.prepend(evt_temp);
+                        });
                     });
                 });
             });

@@ -11,8 +11,8 @@
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
         <script type="text/javascript">
-            $.getJSON('slug_mappings.json', function(mappings) {
-                inverse_mapping = _.invert(mappings);
+            $.getJSON('properties.json', function(properties) {
+                inverse_mapping = _.invert(properties.slugs);
             });
         </script>
 
