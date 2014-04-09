@@ -20,7 +20,7 @@
                     return;
                 } 
                 var gid = mappings[slug];
-                var fields = 'fields=starts_at,ends_at,name,content,external_url,parent_group.slug&';
+                var fields = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
                 var event_data_uri = 'http://api.campsite.org/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
                 $.getJSON(event_data_uri, function(groupEvents) {
                     var the_event;
@@ -65,7 +65,7 @@
                                 regBtn.attr('href', the_event.external_url);
                             } else {
                                 regBtn.attr('href', 
-                                    'http://www.campsite.org/'+the_event.parent_group.slug+'/event/'+id);
+                                    'http://www.campsite.org/'+the_event.parent_group.slug+'/event/'+the_event.id);
                             }
                         }
                         
