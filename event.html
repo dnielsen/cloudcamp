@@ -38,7 +38,11 @@
 
                     if(!_.isUndefined(inverse_mapping)) {
                         var slug = inverse_mapping[data.parent_group.id];
-                        window.history.replaceState(null, '', slug+'/'+id);
+                        if (!_.isUndefined(slug)){
+                            window.history.replaceState(null, '', slug+'/'+id);
+                        } else {
+                            window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
+                        }
                     }
                     
                     var starts_at = new Date(data.starts_at);
