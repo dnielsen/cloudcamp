@@ -1,3 +1,10 @@
 {
-    "london" : 401
+    "london": 401,
+    "sacramento": 461,
+    "chicago": 471,
+    "sf": 161,
+    "bd": 23,
+    "brac": 24,
+    "daffodil": 25,
+    "dhaka": 26
 }
