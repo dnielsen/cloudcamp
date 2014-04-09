@@ -28,6 +28,7 @@
 
                 $.getJSON(eventsURI, function(data) {
                     document.title = data.name;
+                    window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
                     
                     var starts_at = new Date(data.starts_at);
                     var date_str = "(" + getDate(starts_at) + ")";
