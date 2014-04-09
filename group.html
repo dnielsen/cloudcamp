@@ -16,7 +16,7 @@
             
             $.getJSON('slug_mappings.json', function(mappings) {
                 if(!_.has(mappings, slug)) {
-                    $(".content").append("Group '"+slug+"' not found, please provide a valid group");
+                    $(".content").append('The group ' + slug + ' does not exist on this site.');
                     return;
                 } 
                 var gid = mappings[slug];
