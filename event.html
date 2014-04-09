@@ -24,7 +24,7 @@
                     return;
                 }
                 var baseHost = 'http://api.campsite.org';
-                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id';
+                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
                 
                 if(id == 501) {
                     var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
