@@ -23,16 +23,10 @@
                     alert("Invalid id");
                     return;
                 }
-                var baseHost = 'http://api.campsite.org';
-                var eventsURI = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
+                var baseHost    = 'http://api.campsite.org';
+                var eventsURI   = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
+                var sponsorsURI = baseHost + '/sponsorships?event_id={eid}';
                 
-                if(id == 501) {
-                    var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
-                    extraSponsors += '<li><a target="_blank" href="https://www.elasticbox.com/" target="_blank"><img src="img/elasticbox-logo.png" alt="elasticbox"></a></li>';
-                    extraSponsors += '<li><a target="_blank" href="http://www.mongodb.org" target="_blank"><img src="img/MongoDB.png" alt="MongoDB"></a></li>';
-                    $('.sponsors-sidebar').prepend(extraSponsors);               
-                }
-
                 $.getJSON(eventsURI, function(data) {
                     document.title = data.name;
 
@@ -59,6 +53,22 @@
                         regBtn.attr('href', 'http://www.campsite.org/'+data.parent_group.slug+'/event/'+id);
                     }
                 });
+
+                $.getJSON(sponsorsURI.replace(/{eid}/, id), function(data) {
+
+                    var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                    var sponsorDiv = $('.sponsors-sidebar');
+                    var sponsorsHtml = '';
+
+                    _.each(data, function(sponsorship) {
+                        var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                        sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                        sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                        sponsorsHtml += sponsor_html;
+                    });
+                    sponsorDiv.append(sponsorsHtml);
+                });
+
             });
         </script>
     </head>
@@ -104,21 +114,6 @@
                         <div class="section">
                             <h5>Sponsors</h5>
                             <ul class="sponsors-sidebar">
-                                <li>
-                                    <a href="http://www.cohesiveft.com">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/CohesiveFT-Logo_black.png" alt="CohesiveFT" />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="http://www.brightbox.co.uk">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/brightbox_logo.jpg" alt="Brightbox" />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="http://dbcloudexchange.com/en-uk/">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/DB_Cloud-Exchange__rgb_DINA4.png" alt="Deutsche Boerse Cloud Exchange" />
-                                    </a>
-                                </li>
                             </ul>
                         </div>
                     </div>

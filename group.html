@@ -21,8 +21,12 @@
                     return;
                 } 
                 var gid = mappings[slug];
-                var fields = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
-                var event_data_uri = 'http://api.campsite.org/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
+                var baseHost          = 'http://api.campsite.org';
+                var fields            = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
+                var event_data_uri    = baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
+                var group_sponsorsURI = baseHost + '/sponsorships?group_id='+gid;
+                var event_sponsorsURI = baseHost + '/sponsorships?event_id={eid}';
+                
                 $.getJSON(event_data_uri, function(groupEvents) {
                     var the_event;
                     var is_upcoming = true;
@@ -54,6 +58,23 @@
                             $("#event-title").html(group_data.name);
                             $("#content").html( decodeURIComponent(group_data.description) );
                         });
+
+                        $.getJSON(group_sponsorsURI, function(data) {
+
+                            var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                            var sponsorDiv = $('.sponsors-sidebar');
+                            var sponsorsHtml = '';
+
+                            _.each(data, function(sponsorship) {
+                                var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                                sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                                sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                                sponsorsHtml += sponsor_html;
+                            });
+                            sponsorDiv.append(sponsorsHtml);
+
+                        });
+
                     } else {
                         if(!is_upcoming) {
                             regBtn.remove();
@@ -75,12 +96,22 @@
                         $("#event-title").html(the_event.name + " " + date_str );
                         $("#content").html( decodeURIComponent(the_event.content) );
 
-                        if(slug == 'london') {
-                            var extraSponsors = '<li><a target="_blank" href="http://www.elastichosts.co.uk"><img src="img/elastic_hosts.jpg" alt="elastichosts"></a></li>';
-                            extraSponsors += '<li><a target="_blank" href="https://www.elasticbox.com/" target="_blank"><img src="img/elasticbox-logo.png" alt="elasticbox"></a></li>';
-                            extraSponsors += '<li><a target="_blank" href="http://www.mongodb.org" target="_blank"><img src="img/MongoDB.png" alt="MongoDB"></a></li>';
-                            $('.sponsors-sidebar').prepend(extraSponsors);               
-                        }
+
+                        $.getJSON(event_sponsorsURI.replace(/{eid}/, the_event.id), function(data) {
+
+                            var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                            var sponsorDiv = $('.sponsors-sidebar');
+                            var sponsorsHtml = '';
+
+                            _.each(data, function(sponsorship) {
+                                var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                                sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                                sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                                sponsorsHtml += sponsor_html;
+                            });
+                            sponsorDiv.append(sponsorsHtml);
+                            
+                        });
                     }
                     
                     
@@ -131,21 +162,6 @@
                         <div class="section">
                             <h5>Sponsors</h5>
                             <ul class="sponsors-sidebar">
-                                <li>
-                                    <a href="http://www.cohesiveft.com">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/CohesiveFT-Logo_black.png" alt="CohesiveFT" />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="http://www.brightbox.co.uk">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/brightbox_logo.jpg" alt="Brightbox" />
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="http://dbcloudexchange.com/en-uk/">
-                                        <img src="http://s3.amazonaws.com/platformd-testing/media/DB_Cloud-Exchange__rgb_DINA4.png" alt="Deutsche Boerse Cloud Exchange" />
-                                    </a>
-                                </li>
                             </ul>
                         </div>
                     </div>
