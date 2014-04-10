@@ -18,7 +18,7 @@
 
                 jQuery(document).ready(function($) {
                     var baseHost = 'http://api.campsite.org';
-                    var groupsURI = baseHost + '/groups/{gid}?fields=description';
+                    var groupsURI = baseHost + '/groups/{gid}?fields=description,groupAvatar.filename';
                     var eventsURI = baseHost + '/groups/{gid}/events';
                     
                     var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
@@ -26,6 +26,9 @@
                     var now = new Date();
                     $.getJSON(groupsURI.replace(/{gid}/,group_id), function(data) {
                         $("#desc").html(data.description);
+                        if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
+                            $("#logo-img").attr("src", data.groupAvatar.uri);
+                        }
                     });
                     $.getJSON(eventsURI.replace(/{gid}/,group_id), function(data) {
                         var selector = $("#upcoming");
@@ -52,7 +55,7 @@
             <div class="shell">
                 <div id="header">
                     <h1 id="logo" class="notext"><a href="/index.html">
-                        <img class="left" src="img/logo.png">
+                        <img id="logo-img" class="left" src="img/logo.png">
                     </a></h1>
                     
 
