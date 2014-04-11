@@ -1,31 +1,37 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Schedule | Cloudcamp</title>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title></title>
         <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
-        
+                
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
         <script id="addJS">
+
             $.getJSON('properties.json', function(properties) {
-                var group_id = properties.community_id;
+                var community_id = properties.community_id;
 
                 jQuery(document).ready(function($) {
 
-                    var baseHost = 'http://api.campsite.org';
-                    var eventsURI = baseHost + '/groups/{gid}/events';
+                    var baseHost     = 'http://api.campsite.org';
+                    var communityURI = baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename';
+                    var eventsURI    = baseHost + '/groups/'+community_id+'/events';
                     
-                    var upcomingEventsURI = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=>'+(new Date()).toString()+'&sort_by=-starts_at';
-                    var pastEventsURI     = baseHost + '/events?group_id={gid}&fields=id,name,starts_at,ends_at,location&private=0&ends_at=<'+(new Date()).toString()+'&sort_by=starts_at';
-                
                     var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
         
                     var now = new Date();
-                    $.getJSON(eventsURI.replace(/{gid}/,group_id), function(data) {
+                    $.getJSON(communityURI, function(data) {
+                        document.title = data.name;
+                        $('.group-title').html(data.name);
+                        if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
+                            $("#logo-img").attr("src", data.groupAvatar.uri);
+                        }
+                    });
+                    $.getJSON(eventsURI, function(data) {
                         var future = $("#upcoming");
                         var past = $("#recent");
                         _.each(data, function (event) {
@@ -41,7 +47,6 @@
                 });
             });
             
-
             function render_template(event, template) {
                 var starts_at = new Date(event.starts_at);
                 var event_html = new String(template);
@@ -57,14 +62,7 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <h1 id="logo" class="notext"><a href="/index.html">
-                        <img class="left" src="img/logo.png">
-                    </a></h1>
-                    <div class="socials right">
-                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
-                    </div>
-                    <div class="cl">&nbsp;</div>
-                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                    <a href="/index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">
@@ -202,10 +200,7 @@
                     </div>
                     <div id="footer">
                         <div class="foot-nav left">
-                        © 2012-2014 CloudCamp.  All rights reserved.
-                        </div>
-                        <div class="socials right">
-                            <a href="#">Organizers/Sponsers Login</a>
+                        © 2012-2014 <span class="group-title"></span>.  All rights reserved.
                         </div>
                     </div>
                 </div>

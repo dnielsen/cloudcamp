@@ -1,32 +1,44 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Cloudcamp Group</title>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title></title>
         <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
-        
+                
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
-        <script>
-        
+
+        <script id="addJS">
+
             var slug = getParameterByName('slug');
             window.history.replaceState(null, '', slug);
             
             $.getJSON('properties.json', function(properties) {
+                var community_id = properties.community_id;
+                var baseHost     = 'http://api.campsite.org';
+                var communityURI = baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename';
+
+                $.getJSON(communityURI, function(data) {
+                    $('.group-title').html(data.name);
+                    if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
+                        $("#logo-img").attr("src", data.groupAvatar.uri);
+                    }
+                });
+
                 var mappings = properties.slugs;
                 if(!_.has(mappings, slug)) {
-                    $(".content").append('The group ' + slug + ' does not exist on this site.');
+                    $(".content").append('<p>The group ' + slug + ' does not exist on this site.</p>');
                     return;
                 } 
+
                 var gid = mappings[slug];
-                var baseHost          = 'http://api.campsite.org';
                 var fields            = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
                 var event_data_uri    = baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
                 var group_sponsorsURI = baseHost + '/sponsorships?group_id='+gid;
                 var event_sponsorsURI = baseHost + '/sponsorships?event_id={eid}';
-                
+
                 $.getJSON(event_data_uri, function(groupEvents) {
                     var the_event;
                     var is_upcoming = true;
@@ -52,11 +64,15 @@
 
                     var regBtn = $('#register-button');
                     if(_.isUndefined(the_event)) {
-                        var group_uri = "http://api.campsite.org/groups/"+gid+"?fields=description,name";
+                        var group_uri = "http://api.campsite.org/groups/"+gid+"?fields=description,name,groupAvatar.filename";
                         $.getJSON(group_uri, function(group_data) {
+                            document.title = group_data.name;
                             regBtn.remove();
                             $("#event-title").html(group_data.name);
                             $("#content").html( decodeURIComponent(group_data.description) );
+                            if(_.has(group_data,"groupAvatar") && _.has(group_data.groupAvatar,"uri")) {
+                                $("#logo-img").attr("src", group_data.groupAvatar.uri);
+                            }
                         });
 
                         $.getJSON(group_sponsorsURI, function(data) {
@@ -76,12 +92,10 @@
                         });
 
                     } else {
+                        document.title = the_event.name;
                         if(!is_upcoming) {
                             regBtn.remove();
-                            document.title = "Most Recent: " + the_event.name;
                         } else {
-                            document.title = "Next Event: " + the_event.name;
-
                             regBtn.attr('target', '_blank');
                             if (the_event.external_url !== null) {
                                 regBtn.attr('href', the_event.external_url);
@@ -113,8 +127,6 @@
                             
                         });
                     }
-                    
-                    
                 });
             });
         </script>
@@ -124,14 +136,7 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <h1 id="logo" class="notext"><a href="/index.html">
-                        <img class="left" src="img/logo.png">
-                    </a></h1>
-                    <div class="socials right">
-                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
-                    </div>
-                    <div class="cl">&nbsp;</div>
-                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                    <a href="/index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">
@@ -168,10 +173,7 @@
                     <div class="cl"></div>
                         <div id="footer">
                             <div class="foot-nav left">
-                                © 2012-2014 CloudCamp.  All rights reserved.
-                            </div>
-                            <div class="socials right">
-                                <a href="#">Organizers/Sponsers Login</a>
+                                © 2012-2014 <span class="group-title"></span>.  All rights reserved.
                             </div>
                         </div>
                     </div>

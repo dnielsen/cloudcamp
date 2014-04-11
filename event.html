@@ -1,74 +1,83 @@
 <!DOCTYPE html>
 <html> 
     <head>
-        <title>Cloudcamp Event</title>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title></title>
         <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
-        
+                
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
-        <script type="text/javascript">
-            $.getJSON('properties.json', function(properties) {
-                inverse_mapping = _.invert(properties.slugs);
-            });
-        </script>
-
         <script id="addJS">
-            jQuery(document).ready(function($) {
-                var id = parseInt(getParameterByName('id'));
-                if(!_.isNumber(id)) {
-                    alert("Invalid id");
-                    return;
-                }
-                var baseHost    = 'http://api.campsite.org';
-                var eventsURI   = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
-                var sponsorsURI = baseHost + '/sponsorships?event_id={eid}';
-                
-                $.getJSON(eventsURI, function(data) {
-                    document.title = data.name;
 
-                    if(!_.isUndefined(inverse_mapping)) {
-                        var slug = inverse_mapping[data.parent_group.id];
-                        if (!_.isUndefined(slug)){
-                            window.history.replaceState(null, '', slug+'/'+id);
-                        } else {
-                            window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
+            $.getJSON('properties.json', function(properties) {
+                var community_id     = properties.community_id;
+                var baseHost         = 'http://api.campsite.org';
+                var communityURI = baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename';
+
+                inverse_mapping  = _.invert(properties.slugs);
+
+                $.getJSON(communityURI, function(data) {
+                    $('.group-title').html(data.name);
+                    if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
+                        $("#logo-img").attr("src", data.groupAvatar.uri);
+                    }
+                });
+
+                jQuery(document).ready(function($) {
+                    var id = parseInt(getParameterByName('id'));
+                    if(!_.isNumber(id)) {
+                        alert("Invalid id");
+                        return;
+                    }
+                    var eventsURI   = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
+                    var sponsorsURI = baseHost + '/sponsorships?event_id='+id;
+                    
+                    $.getJSON(eventsURI, function(data) {
+                        document.title = data.name;
+
+                        if(!_.isUndefined(inverse_mapping)) {
+                            var slug = inverse_mapping[data.parent_group.id];
+                            if (!_.isUndefined(slug)){
+                                window.history.replaceState(null, '', slug+'/'+id);
+                            } else {
+                                window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
+                            }
                         }
-                    }
-                    
-                    var starts_at = new Date(data.starts_at);
-                    var date_str = "(" + getDate(starts_at) + ")";
-                    $("#event-title").html(data.name + " " + date_str );
-                    $("#content").html( decodeURIComponent(data.content) );
-                    
-                    
-                    var regBtn = $('#register-button');
-                    regBtn.attr('target', '_blank');
-                    if (data.external_url !== null) {
-                        regBtn.attr('href', data.external_url);
-                    } else {
-                        regBtn.attr('href', 'http://www.campsite.org/'+data.parent_group.slug+'/event/'+id);
-                    }
-                });
-
-                $.getJSON(sponsorsURI.replace(/{eid}/, id), function(data) {
-
-                    var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
-                    var sponsorDiv = $('.sponsors-sidebar');
-                    var sponsorsHtml = '';
-
-                    _.each(data, function(sponsorship) {
-                        var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
-                        sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
-                        sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
-                        sponsorsHtml += sponsor_html;
+                        
+                        var starts_at = new Date(data.starts_at);
+                        var date_str = "(" + getDate(starts_at) + ")";
+                        $("#event-title").html(data.name + " " + date_str );
+                        $("#content").html( decodeURIComponent(data.content) );
+                        
+                        
+                        var regBtn = $('#register-button');
+                        regBtn.attr('target', '_blank');
+                        if (data.external_url !== null) {
+                            regBtn.attr('href', data.external_url);
+                        } else {
+                            regBtn.attr('href', 'http://www.campsite.org/'+data.parent_group.slug+'/event/'+id);
+                        }
                     });
-                    sponsorDiv.append(sponsorsHtml);
-                });
 
+                    $.getJSON(sponsorsURI, function(data) {
+
+                        var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                        var sponsorDiv = $('.sponsors-sidebar');
+                        var sponsorsHtml = '';
+
+                        _.each(data, function(sponsorship) {
+                            var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                            sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                            sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                            sponsorsHtml += sponsor_html;
+                        });
+                        sponsorDiv.append(sponsorsHtml);
+                    });
+
+                });
             });
         </script>
     </head>
@@ -76,14 +85,7 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <h1 id="logo" class="notext"><a href="/index.html">
-                        <img class="left" src="img/logo.png">
-                    </a></h1>
-                    <div class="socials right">
-                        <a href="http://www.twitter.com/cloudcamp" class="ico-twitter notext left">Twitter</a>
-                    </div>
-                    <div class="cl">&nbsp;</div>
-                    <p class="tagline pm">Cloud Computing is better when we do it together</p>
+                    <a href="/index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">
@@ -120,10 +122,7 @@
                     <div class="cl"></div>
                         <div id="footer">
                             <div class="foot-nav left">
-                                © 2012-2014 CloudCamp.  All rights reserved.
-                            </div>
-                            <div class="socials right">
-                                <a href="#">Organizers/Sponsers Login</a>
+                                © 2012-2014 <span class="group-title"></span>.  All rights reserved.
                             </div>
                         </div>
                     </div>

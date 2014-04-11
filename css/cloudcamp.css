@@ -4018,6 +4018,7 @@ a:hover { text-decoration: underline; }
 a img { border: 0; }
 
 h1#logo a { background: url(../../bundles/cloudcamp/css/images/logo.png); width: 310px; height: 68px; position: absolute; top: 40px; left: -2px; }
+#logo-img { max-height: 93px; position: absolute; top: 40px; left: -2px; }
 h2 { font-size: 26px; }
 h3 { font-size: 18px; line-height: 22px; font-weight: normal; }
 h4 { font-size: 14px; }
