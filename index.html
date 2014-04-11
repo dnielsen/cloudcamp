@@ -16,7 +16,7 @@
                 var community_id = properties.community_id;
 
                 jQuery(document).ready(function($) {
-                    
+
                     var baseHost     = 'http://api.campsite.org';
                     var communityURI = baseHost + '/groups/'+community_id+'?fields=name,description,groupAvatar.filename';
                     var eventsURI    = baseHost + '/groups/'+community_id+'/events';
@@ -34,7 +34,13 @@
                     });
                     $.getJSON(eventsURI, function(data) {
                         var selector = $("#upcoming");
+                        var event_ids = '';
+                        var first_iteration = true;
                         _.each(data, function (event) {
+
+                            event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
+                            first_iteration = false;
+
                             var starts_at = new Date(event.starts_at);
                             var ends_at = new Date(event.ends_at);
                             if(ends_at.getTime() < now.getTime()) {
@@ -46,6 +52,15 @@
                                 evt_temp = evt_temp.replace(/{location}/, event.location);
                                 evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
                             selector.prepend(evt_temp);
+                        });
+
+                        var events_sponsors_uri = baseHost + '/sponsorships?event_id='+event_ids+'&fields=level,sponsor';
+                        $.getJSON(events_sponsors_uri, function(data) {
+                            var sponsorsHtml = '';
+                            _.each(data, function(sponsorship) {
+                                sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
+                            });
+                            $('#sponsors-sidebar').html(sponsorsHtml);
                         });
                     });
                 });
@@ -93,107 +108,14 @@
                             </table>
                             <div class="cl">&nbsp;</div>
                         </div>
-
                     </div>
-
-                   
-
                     <div class="sidebar right">
                         <div class="section">
                             <h5>Top Sponsors</h5>
-                            <ul>
-                                <li><img src="img/side-partner1.jpg" alt=""></li>
-                                <li><img src="img/side-partner3.jpg" alt=""></li>
-                                <li><img src="img/side-partner4.jpg" alt=""></li>
-                                <li><img src="img/side-partner5.jpg" alt=""></li>
-                                <li><img src="img/side-partner6.jpg" alt=""></li>
-                                <li><img src="img/side-partner7.jpg" alt=""></li>
-                                <li><img src="img/virtustream_logo.jpg" alt=""></li>
-                                <li><img src="img/side-partner8.jpg" alt=""></li>
-                                <li><img src="img/side-partner9.jpg" alt=""></li>
-                                <li><img src="img/sponsor1.jpg" alt=""></li>
-                                <li><img src="img/sponsor2.jpg" alt=""></li>
-                                <li><img src="img/sponsor3.jpg" alt=""></li>
-                                <li><img src="img/sponsor4.jpg" alt=""></li>
-                                <li><img src="img/sponsor5.jpg" alt=""></li>
-                                <li><img src="img/sponsor6.jpg" alt=""></li>
-                                <li><img src="img/sponsor7.jpg" alt=""></li>
-                                <li><img src="img/sponsor8.jpg" alt=""></li>
-                            </ul>
+                            <ul id="sponsors-sidebar"></ul>
                         </div>
                     </div>
-
                     <div class="cl"></div>
-                    <div class="section sponsors-list">
-                        <h5>
-                            <a href="sponsors.html" class="right">Become a Sponsor »</a> Our Sponsors
-                        </h5>
-
-                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                            <tbody>
-                                <tr>
-                                    <td><img src="img/sponsor9.jpg" alt=""></td>
-                                    <td><img src="img/sponsor10.jpg" alt=""></td>
-                                    <td><img src="img/sponsor11.jpg" alt=""></td>
-                                    <td><img src="img/sponsor12.jpg" alt=""></td>
-                                    <td><img src="img/sponsor13.jpg" alt=""></td>
-                                    <td><img src="img/sponsor14.jpg" alt=""></td>
-                                    <td><img src="img/sponsor15.jpg" alt=""></td>
-                                    <td><img src="img/sponsor16.jpg" alt=""></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="img/sponsor17.jpg" alt=""></td>
-                                    <td><img src="img/sponsor18.jpg" alt=""></td>
-                                    <td><img src="img/sponsor19.jpg" alt=""></td>
-                                    <td><img src="img/sponsor20.jpg" alt=""></td>
-                                    <td><img src="img/sponsor21.jpg" alt=""></td>
-                                    <td><img src="img/sponsor22.jpg" alt=""></td>
-                                    <td><img src="img/sponsor23.jpg" alt=""></td>
-                                    <td><img src="img/sponsor24.jpg" alt=""></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="img/sponsor25.jpg" alt=""></td>
-                                    <td><img src="img/sponsor26.jpg" alt=""></td>
-                                    <td><img src="img/sponsor27.jpg" alt=""></td>
-                                    <td><img src="img/sponsor28.jpg" alt=""></td>
-                                    <td><img src="img/sponsor29.jpg" alt=""></td>
-                                    <td><img src="img/sponsor30.jpg" alt=""></td>
-                                    <td><img src="img/sponsor31.jpg" alt=""></td>
-                                    <td><img src="img/sponsor32.jpg" alt=""></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="img/sponsor33.jpg" alt=""></td>
-                                    <td><img src="img/sponsor34.jpg" alt=""></td>
-                                    <td><img src="img/sponsor35.jpg" alt=""></td>
-                                    <td><img src="img/sponsor36.jpg" alt=""></td>
-                                    <td><img src="img/sponsor37.jpg" alt=""></td>
-                                    <td><img src="img/sponsor38.jpg" alt=""></td>
-                                    <td><img src="img/sponsor40.jpg" alt=""></td>
-                                    <td><img src="img/sponsor39.jpg" alt=""> <img src="img/sponsor41.jpg" alt=""></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="img/sponsor42.jpg" alt=""></td>
-                                    <td><img src="img/sponsor43.jpg" alt=""></td>
-                                    <td><img src="img/sponsor44.jpg" alt=""></td>
-                                    <td><img src="img/sponsor45.jpg" alt=""></td>
-                                    <td><img src="img/sponsor46.jpg" alt=""></td>
-                                    <td><img src="img/sponsor47.jpg" alt=""></td>
-                                    <td><img src="img/sponsor48.jpg" alt=""></td>
-                                    <td><img src="img/sponsor49.jpg" alt=""></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="img/sponsor50.jpg" alt=""></td>
-                                    <td><img src="img/sponsor51.jpg" alt=""></td>
-                                    <td><img src="img/sponsor52.jpg" alt=""></td>
-                                    <td><img src="img/sponsor53.jpg" alt=""></td>
-                                    <td><img src="img/sponsor54.jpg" alt=""></td>
-                                    <td><img src="img/sponsor55.jpg" alt=""></td>
-                                    <td><img src="img/sponsor56.jpg" alt=""></td>
-                                    <td><img src="img/sponsor57.jpg" alt=""></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                     <div id="footer">
                         <div class="foot-nav left">
                         © 2012-2014 <span class="group-title"></span>.  All rights reserved.
