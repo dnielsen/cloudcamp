@@ -33,7 +33,7 @@
                         return;
                     }
                     var eventsURI   = baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
-                    var sponsorsURI = baseHost + '/sponsorships?event_id='+id;
+                    var sponsorsURI = baseHost + '/sponsorships?event_id='+id+'&status=sponsoring';
                     
                     $.getJSON(eventsURI, function(data) {
                         document.title = data.name;

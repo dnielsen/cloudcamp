@@ -36,8 +36,8 @@
                 var gid = mappings[slug];
                 var fields            = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
                 var event_data_uri    = baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
-                var group_sponsorsURI = baseHost + '/sponsorships?group_id='+gid;
-                var event_sponsorsURI = baseHost + '/sponsorships?event_id={eid}';
+                var group_sponsorsURI = baseHost + '/sponsorships?status=sponsoring&group_id='+gid;
+                var event_sponsorsURI = baseHost + '/sponsorships?status=sponsoring&event_id={eid}';
 
                 $.getJSON(event_data_uri, function(groupEvents) {
                     var the_event;

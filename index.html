@@ -54,7 +54,7 @@
                             selector.prepend(evt_temp);
                         });
 
-                        var events_sponsors_uri = baseHost + '/sponsorships?event_id='+event_ids+'&fields=level,sponsor';
+                        var events_sponsors_uri = baseHost + '/sponsorships?event_id='+event_ids+'&fields=level,sponsor&status=sponsoring';
                         $.getJSON(events_sponsors_uri, function(data) {
                             var sponsorsHtml = '';
                             _.each(data, function(sponsorship) {
