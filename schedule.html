@@ -68,7 +68,7 @@
             function render_template(event, template) {
                 var starts_at = new Date(event.starts_at);
                 var event_html = new String(template);
-                event_html = event_html.replace(/{date}/, getDate(starts_at));
+                event_html = event_html.replace(/{date}/, UTIL.getDate(starts_at));
                 event_html = event_html.replace(/{name}/, event.name);
                 event_html = event_html.replace(/{location}/, event.location);
                 event_html = event_html.replace(/{link}/, "event.html?id="+event.id);
@@ -132,7 +132,7 @@
                     </div>
 
                     <div class="cl"></div>
-                    
+
                     <div id="footer">
                         <div class="foot-nav left">
                         © 2012-2014 <span class="group-title"></span>.  All rights reserved.

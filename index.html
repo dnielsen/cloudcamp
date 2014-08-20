@@ -12,56 +12,53 @@
 
         <script id="addJS">
 
-            $.getJSON('properties.json', function(properties) {
-                var community_id = properties.community_id;
+            var baseHost = 'http://api.campsite.org';
+            var COMMUNITY_ID = 21;
 
-                jQuery(document).ready(function($) {
+            jQuery(document).ready(function($) {
+                var communityURI = baseHost + '/groups/'+COMMUNITY_ID+'?fields=name,description,groupAvatar.filename';
+                var eventsURI    = baseHost + '/groups/'+COMMUNITY_ID+'/events';
 
-                    var baseHost     = 'http://api.campsite.org';
-                    var communityURI = baseHost + '/groups/'+community_id+'?fields=name,description,groupAvatar.filename';
-                    var eventsURI    = baseHost + '/groups/'+community_id+'/events';
-                    
-                    var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
-        
-                    var now = new Date();
-                    $.getJSON(communityURI, function(data) {
-                        document.title = data.name;
-                        $('.group-title').html(data.name);
-                        $("#desc").html(data.description);
-                        if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
-                            $("#logo-img").attr("src", data.groupAvatar.uri);
+                var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
+
+                var now = new Date();
+                $.getJSON(communityURI, function(data) {
+                    document.title = data.name;
+                    $('.group-title').html(data.name);
+                    $("#desc").html(data.description);
+                    if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
+                        $("#logo-img").attr("src", data.groupAvatar.uri);
+                    }
+                });
+                $.getJSON(eventsURI, function(data) {
+                    var selector = $("#upcoming");
+                    var event_ids = '';
+                    var first_iteration = true;
+                    _.each(data, function (event) {
+
+                        event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
+                        first_iteration = false;
+
+                        var starts_at = new Date(event.starts_at);
+                        var ends_at = new Date(event.ends_at);
+                        if(ends_at.getTime() < now.getTime()) {
+                            return;
                         }
+
+                        var evt_temp = template.replace(/{date}/, UTIL.getDate(starts_at));
+                            evt_temp = evt_temp.replace(/{name}/, event.name);
+                            evt_temp = evt_temp.replace(/{location}/, event.location);
+                            evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
+                        selector.prepend(evt_temp);
                     });
-                    $.getJSON(eventsURI, function(data) {
-                        var selector = $("#upcoming");
-                        var event_ids = '';
-                        var first_iteration = true;
-                        _.each(data, function (event) {
 
-                            event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
-                            first_iteration = false;
-
-                            var starts_at = new Date(event.starts_at);
-                            var ends_at = new Date(event.ends_at);
-                            if(ends_at.getTime() < now.getTime()) {
-                                return;
-                            }
-
-                            var evt_temp = template.replace(/{date}/, getDate(starts_at));
-                                evt_temp = evt_temp.replace(/{name}/, event.name);
-                                evt_temp = evt_temp.replace(/{location}/, event.location);
-                                evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-                            selector.prepend(evt_temp);
+                    var events_sponsors_uri = baseHost + '/sponsorships?event_id='+event_ids+'&fields=level,sponsor&status=sponsoring';
+                    $.getJSON(events_sponsors_uri, function(data) {
+                        var sponsorsHtml = '';
+                        _.each(data, function(sponsorship) {
+                            sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
                         });
-
-                        var events_sponsors_uri = baseHost + '/sponsorships?event_id='+event_ids+'&fields=level,sponsor&status=sponsoring';
-                        $.getJSON(events_sponsors_uri, function(data) {
-                            var sponsorsHtml = '';
-                            _.each(data, function(sponsorship) {
-                                sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
-                            });
-                            $('#sponsors-sidebar').html(sponsorsHtml);
-                        });
+                        $('#sponsors-sidebar').html(sponsorsHtml);
                     });
                 });
             });

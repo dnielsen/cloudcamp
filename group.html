@@ -12,7 +12,7 @@
 
         <script id="addJS">
 
-            var slug = getParameterByName('slug');
+            var slug = UTIL.getParameterByName('slug');
             window.history.replaceState(null, '', slug);
             
             $.getJSON('properties.json', function(properties) {
@@ -106,7 +106,7 @@
                         }
                         
                         var starts_at = new Date(the_event.starts_at);
-                        var date_str = "(" + getDate(starts_at) + ")";
+                        var date_str = "(" + UTIL.getDate(starts_at) + ")";
                         $("#event-title").html(the_event.name + " " + date_str );
                         $("#content").html( decodeURIComponent(the_event.content) );
 
