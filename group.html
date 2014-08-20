@@ -8,6 +8,7 @@
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
 
         <script id="addJS">
@@ -16,9 +17,7 @@
             window.history.replaceState(null, '', slug);
             
             $.getJSON('properties.json', function(properties) {
-                var community_id = properties.community_id;
-                var baseHost     = 'http://api.campsite.org';
-                var communityURI = baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename';
+                var communityURI = CONFIG.baseHost + '/groups/'+CONFIG.community+'?fields=name,groupAvatar.filename';
 
                 $.getJSON(communityURI, function(data) {
                     $('.group-title').html(data.name);
@@ -35,9 +34,9 @@
 
                 var gid = mappings[slug];
                 var fields            = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
-                var event_data_uri    = baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
-                var group_sponsorsURI = baseHost + '/sponsorships?status=sponsoring&group_id='+gid;
-                var event_sponsorsURI = baseHost + '/sponsorships?status=sponsoring&event_id={eid}';
+                var event_data_uri    = CONFIG.baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
+                var group_sponsorsURI = CONFIG.baseHost + '/sponsorships?status=sponsoring&group_id='+gid;
+                var event_sponsorsURI = CONFIG.baseHost + '/sponsorships?status=sponsoring&event_id={eid}';
 
                 $.getJSON(event_data_uri, function(groupEvents) {
                     var the_event;

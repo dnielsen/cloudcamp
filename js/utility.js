@@ -9,6 +9,13 @@ var UTIL = (function(){
 
     my.monthNames = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
 
+    my.campsite = function ( resourcePath, queryParams ) {
+        var qp_string = _.map(queryParams, function(v,k){
+            return k + '=' + v;
+        }).join('&');
+        return $.getJSON(CONFIG.baseHost + '/' + resourcePath + '?' + qp_string ).promise();
+    };
+
     my.getParameterByName = function (name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),

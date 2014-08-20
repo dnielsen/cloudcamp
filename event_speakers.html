@@ -8,52 +8,25 @@
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="js/underscore-min.js"></script>
         
         <script id="addJS">
 
-            var baseHost         = 'http://api.campsite.org';
-
-            var loadProps = function () {
-                return $.getJSON('properties.json').then(function(result) {
-                    return result ? result : $.Deferred().reject('loadProps').promise();
-                }, function() {
-                    return 'loadProps';//continue on failure path.
-                });
-            };
-
             var getGroupInfo = function (properties) {
-                var community_id     = properties.community_id;
-                
-                return $.getJSON(baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename').then(function(result) {
-                    return result ? result : $.Deferred().reject('getGroupInfo').promise();//convert success to failure.
-                }, function() {
-                    return 'getGroupInfo';//continue on failure path.
-                });
+                return UTIL.campsite('/groups/'+CONFIG.community, {'fields': "name,groupAvatar.filename"});
             };
 
-            var updateGroupDetails = function (groupData) {
+            var getSpeakersInfo = function (event_id) {
+                return UTIL.campsite('/session_speakers', { 'session.event_id': event_id, 'verbose': '' });
+            };
+
+            var renderGroupDetails = function (groupData) {
                 $('.group-title').html(groupData.name);
                 if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
                     $("#logo-img").attr("src", groupData.groupAvatar.uri);
                 }
             };
-
-            var getSpeakersInfo = function (event_id) {
-                return $.getJSON(baseHost + '/session_speakers?verbose=&session.event_id='+event_id).then(function(result) {
-                    return result ? result : $.Deferred().reject('getSpeakersInfo').promise();//convert success to failure.
-                }, function() {
-                    return 'getSpeakersInfo';//continue on failure path.
-                });
-            };
-
-            var render_template = function (name, title, org, session) {
-                return (new String("<tr><td>{name}</td><td>{title}</td><td>{org}</td><td>{session}</td></tr>"))
-                .replace(/{name}/, name)
-                .replace(/{title}/, title)
-                .replace(/{org}/, org)
-                .replace(/{session}/, session);
-            }
 
             var renderSpeakers = function(speakers) {
                 var table = $("#speakers");
@@ -69,24 +42,28 @@
                 });
             };
 
-            loadProps()
-            .then(getGroupInfo)
-            .then(updateGroupDetails, function(data) { 
-                console.log("failure: "+data);
-            });
+            // save the event_id from the current page's 'id' query parameter
+            var event_id = parseInt(UTIL.getParameterByName('id'));
+            if(!_.isNumber(event_id)) {
+                alert("Invalid id");
+            }
 
-            jQuery(document).ready(function($) {
-                var id = parseInt(getParameterByName('id'));
-                if(!_.isNumber(id)) {
-                    alert("Invalid id");
-                    return;
-                }
+            var dom_dfd = $(document).ready().promise(); // resolved on page load
 
-                getSpeakersInfo(id)
-                .then(renderSpeakers, function(data) { 
-                    console.log("failure: "+data);
-                });
-            });
+            //Make api call to get group
+            //then wait for the page to load if necessary
+            //then render the group data to the UI
+            getGroupInfo()
+            .then(dom_dfd)
+            .then(renderGroupDetails);
+
+            //Make api call to get speaker data
+            //then wait for the page to load if necessary
+            //then render the speaker data to the UI
+            getSpeakersInfo()
+            .then(dom_dfd)
+            .then(renderSpeakers);
+
         </script>
     </head>
     <body>
