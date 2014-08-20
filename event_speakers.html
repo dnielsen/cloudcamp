@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html> 
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title></title>
+        <link rel="shortcut icon" href="http://cloudcamp.org/bundles/cloudcamp/css/images/favicon.ico" />
+        <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
+                
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script type="text/javascript" src="js/utility.js"></script>
+        <script type="text/javascript" src="js/underscore-min.js"></script>
+        
+        <script id="addJS">
+
+            var baseHost         = 'http://api.campsite.org';
+
+            var loadProps = function () {
+                return $.getJSON('properties.json').then(function(result) {
+                    return result ? result : $.Deferred().reject('loadProps').promise();
+                }, function() {
+                    return 'loadProps';//continue on failure path.
+                });
+            };
+
+            var getGroupInfo = function (properties) {
+                var community_id     = properties.community_id;
+                
+                return $.getJSON(baseHost + '/groups/'+community_id+'?fields=name,groupAvatar.filename').then(function(result) {
+                    return result ? result : $.Deferred().reject('getGroupInfo').promise();//convert success to failure.
+                }, function() {
+                    return 'getGroupInfo';//continue on failure path.
+                });
+            };
+
+            var updateGroupDetails = function (groupData) {
+                $('.group-title').html(groupData.name);
+                if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
+                    $("#logo-img").attr("src", groupData.groupAvatar.uri);
+                }
+            };
+
+            var getSpeakersInfo = function (event_id) {
+                return $.getJSON(baseHost + '/session_speakers?verbose=&session.event_id='+event_id).then(function(result) {
+                    return result ? result : $.Deferred().reject('getSpeakersInfo').promise();//convert success to failure.
+                }, function() {
+                    return 'getSpeakersInfo';//continue on failure path.
+                });
+            };
+
+            var render_template = function (name, title, org, session) {
+                return (new String("<tr><td>{name}</td><td>{title}</td><td>{org}</td><td>{session}</td></tr>"))
+                .replace(/{name}/, name)
+                .replace(/{title}/, title)
+                .replace(/{org}/, org)
+                .replace(/{session}/, session);
+            }
+
+            var renderSpeakers = function(speakers) {
+                var table = $("#speakers");
+                
+                _.each(speakers, function(s) {
+                    var table_row = (new String("<tr><td>{name}</td><td>{title}</td><td>{org}</td><td>{session}</td></tr>"))
+                    .replace(/{name}/, s.speaker.name || "")
+                    .replace(/{title}/, s.speaker.title || "")
+                    .replace(/{org}/, s.speaker.organization || "")
+                    .replace(/{session}/, s.session.name || "");
+
+                    table.append(table_row);
+                });
+            };
+
+            loadProps()
+            .then(getGroupInfo)
+            .then(updateGroupDetails, function(data) { 
+                console.log("failure: "+data);
+            });
+
+            jQuery(document).ready(function($) {
+                var id = parseInt(getParameterByName('id'));
+                if(!_.isNumber(id)) {
+                    alert("Invalid id");
+                    return;
+                }
+
+                getSpeakersInfo(id)
+                .then(renderSpeakers, function(data) { 
+                    console.log("failure: "+data);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="wrap">
+            <div class="shell">
+                <div id="header">
+                    <a href="/index.html"><img id="logo-img"src=""></a>
+                </div>
+                <div id="nav">
+                    <ul class="left">
+                        <li class="left"><a href="/index.html" class="">Home</a></li>
+                        <li class="left"><a href="/schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="/all_speakers.html" class="">Speakers</a></li>
+                        <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
+                        <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
+                    </ul>
+                    <ul class="right">&nbsp;</ul>
+                    <div class="cl">&nbsp;</div>
+                </div>
+                <div id="main">
+                    <div class="content left">
+                        <h1>Speakers</h1>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Title</th>
+                                    <th>Organization</th>
+                                    <th>Sessions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="speakers"><!-- js fill in here --></tbody>
+                        </table>
+                    </div>
+                    <div class="sidebar right">
+                        <div class="section">
+                            <h5>Sponsors</h5>
+                            <ul class="sponsors-sidebar">
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="cl"></div>
+                        <div id="footer">
+                            <div class="foot-nav left">
+                                © 2012-2014 <span class="group-title"></span>.  All rights reserved.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </body>
+</html>
