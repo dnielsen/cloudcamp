@@ -4057,7 +4057,7 @@ textarea { overflow: auto; }
 #nav ul.left { padding-left: 16px; }
 #nav ul.right { padding-right: 14px; width: 184px; }
 #nav li { height: 47px; position: relative; }
-#nav li a { float: left; color: #fff; text-shadow: 0 1px 1px #333; padding: 0 18px 3px; background: url(../../bundles/cloudcamp/css/images/nav-hover.png) 0 -50px repeat-x; }
+#nav li a { float: left; color: #fff; text-shadow: 0 1px 1px #333; padding: 0 18px 3px; }
 #nav li a:hover,
 #nav li a.hover { text-decoration: none; background-position: 0 0; }
 #nav .dd { width: 209px; position: absolute; top: 47px; left: -6px; display: none; }

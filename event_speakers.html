@@ -18,7 +18,7 @@
             };
 
             var getSpeakersInfo = function (event_id) {
-                return UTIL.campsite('/session_speakers', { 'session.event_id': event_id, 'verbose': '' });
+                return UTIL.campsite('/session_speakers', { 'session': 'event_id='+event_id, 'verbose': '' });
             };
 
             var renderGroupDetails = function (groupData) {
@@ -60,7 +60,7 @@
             //Make api call to get speaker data
             //then wait for the page to load if necessary
             //then render the speaker data to the UI
-            getSpeakersInfo()
+            getSpeakersInfo(event_id)
             .then(dom_dfd)
             .then(renderSpeakers);
 

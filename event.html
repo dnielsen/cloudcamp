@@ -13,80 +13,85 @@
         
         <script id="addJS">
 
-            $.getJSON('properties.json', function(properties) {
-                var communityURI = CONFIG.baseHost + '/groups/'+CONFIG.community+'?fields=name,groupAvatar.filename';
+            var getGroupInfo = function () {
+                return UTIL.campsite('groups/'+CONFIG.community, { 'fields': "name,description,,relativeSlug,groupAvatar.filename" });
+            };
 
-                inverse_mapping  = _.invert(properties.slugs);
+            var renderGroupInfo = function(group_info) {
+                $('.group-title').html(group_info.name);
+                if(_.has(group_info,"groupAvatar") && _.has(group_info.groupAvatar,"uri")) {
+                    $("#logo-img").attr("src", group_info.groupAvatar.uri);
+                }
+            };
 
-                $.getJSON(communityURI, function(data) {
-                    $('.group-title').html(data.name);
-                    if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
-                        $("#logo-img").attr("src", data.groupAvatar.uri);
-                    }
+            var getEvents = function () {
+                return UTIL.campsite('events/'+id, { 'fields': 'name,content,starts_at,location,external_url,parent_group.id,parent_group.slug,parent_group.relativeSlug' } );
+            };
+
+            var renderEvents = function (events) {
+                document.title = events.name;
+
+                if (window.location.protocol != "file:") {
+                    window.history.replaceState({}, '', events.parent_group.relativeSlug+'/'+id);
+                }
+
+                var starts_at = new Date(events.starts_at);
+                var date_str = "(" + UTIL.getDate(starts_at) + ")";
+                $("#event-title").html(events.name + " " + date_str );
+                $("#content").html( decodeURIComponent(events.content) );
+                
+                var regBtn = $('#register-button');
+                regBtn.attr('target', '_blank');
+                if (events.external_url !== null) {
+                    regBtn.attr('href', events.external_url);
+                } else {
+                    regBtn.attr('href', 'http://www.campsite.org/'+events.parent_group.slug+'/event/'+id);
+                }
+            };
+
+            var getSponsorships = function () {
+                return UTIL.campsite('sponsorships', { 'event_id': id, 'fields': 'level,sponsor', 'status': 'sponsoring' });
+            };
+
+            var renderSponsorships = function(sponsorships) {
+                var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                var sponsorDiv = $('.sponsors-sidebar');
+                var sponsorsHtml = '';
+
+                _.each(sponsorships, function(sponsorship) {
+                    var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                    sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                    sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                    sponsorsHtml += sponsor_html;
                 });
+                sponsorDiv.append(sponsorsHtml);
+            };    
 
-                jQuery(document).ready(function($) {
-                    var id = parseInt(UTIL.getParameterByName('id'));
-                    if(!_.isNumber(id)) {
-                        alert("Invalid id");
-                        return;
-                    }
-                    var eventsURI   = CONFIG.baseHost + '/events/'+id+'?fields=name,content,starts_at,location,external_url,parent_group.id,parent_group.slug';
-                    var sponsorsURI = CONFIG.baseHost + '/sponsorships?event_id='+id+'&status=sponsoring';
-                    
-                    $("a[href='/event_speakers.html']").attr('href', '/event_speakers.html?id='+id);
+            var id = parseInt(UTIL.getParameterByName('id'));
+            if(!_.isNumber(id)) {
+                alert("Invalid id");
+            }
 
-                    $.getJSON(eventsURI, function(data) {
-                        document.title = data.name;
+            var dom_dfd = $(document).ready().promise(); // resolved on page load
+            
+            getGroupInfo()
+            .then(dom_dfd)
+            .then(renderGroupInfo);
 
-                        if(!_.isUndefined(inverse_mapping)) {
-                            var slug = inverse_mapping[data.parent_group.id];
-                            if (!_.isUndefined(slug)){
-                                window.history.replaceState(null, '', slug+'/'+id);
-                            } else {
-                                window.history.replaceState(null, '', data.parent_group.slug+'/'+id);
-                            }
-                        }
-                        
-                        var starts_at = new Date(data.starts_at);
-                        var date_str = "(" + UTIL.getDate(starts_at) + ")";
-                        $("#event-title").html(data.name + " " + date_str );
-                        $("#content").html( decodeURIComponent(data.content) );
-                        
-                        
-                        var regBtn = $('#register-button');
-                        regBtn.attr('target', '_blank');
-                        if (data.external_url !== null) {
-                            regBtn.attr('href', data.external_url);
-                        } else {
-                            regBtn.attr('href', 'http://www.campsite.org/'+data.parent_group.slug+'/event/'+id);
-                        }
-                    });
+            getEvents()
+            .then(dom_dfd)
+            .then(renderEvents);
 
-                    $.getJSON(sponsorsURI, function(data) {
+            getSponsorships()
+            .then(renderSponsorships);
 
-                        var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
-                        var sponsorDiv = $('.sponsors-sidebar');
-                        var sponsorsHtml = '';
-
-                        _.each(data, function(sponsorship) {
-                            var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
-                            sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
-                            sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
-                            sponsorsHtml += sponsor_html;
-                        });
-                        sponsorDiv.append(sponsorsHtml);
-                    });
-
-                });
-            });
         </script>
     </head>
     <body>
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <a href="/index.html"><img id="logo-img"src=""></a>
+                    <a href="./index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">
