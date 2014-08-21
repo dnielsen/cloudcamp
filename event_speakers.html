@@ -22,6 +22,8 @@
             };
 
             var renderGroupDetails = function (groupData) {
+                $("a[href='event.html']").attr('href', 'event.html?id='+event_id);
+
                 $('.group-title').html(groupData.name);
                 if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
                     $("#logo-img").attr("src", groupData.groupAvatar.uri);
@@ -76,7 +78,7 @@
                     <ul class="left">
                         <li class="left"><a href="index.html" class="">Home</a></li>
                         <li class="left"><a href="schedule.html" class="">Schedule</a></li>
-                        <li class="left"><a href="all_speakers.html" class="">Speakers</a></li>
+                        <li class="left"><a href="event.html" class="">Event</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>
