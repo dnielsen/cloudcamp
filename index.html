@@ -72,8 +72,6 @@
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
 
-            dom_dfd.then(UTIL.adjustHREFs);
-
             // Retrieve group details then wait for page to load (if necessary) and render the group data
             getGroupInfo()
             .then(dom_dfd)
@@ -101,13 +99,13 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <a href="/index.html"><img id="logo-img"src=""></a>
+                    <a href="index.html"><img id="logo-img"src=""></a>
                 </div>
 
                 <div id="nav">
                     <ul class="left">
-                        <li class="left"><a href="/index.html" class="">Home</a></li>
-                        <li class="left"><a href="/schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="index.html" class="">Home</a></li>
+                        <li class="left"><a href="schedule.html" class="">Schedule</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>

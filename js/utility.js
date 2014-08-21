@@ -16,15 +16,6 @@ var UTIL = (function(){
         return $.getJSON(CONFIG.baseHost + '/' + resourcePath + '?' + qp_string ).promise();
     };
 
-    my.adjustHREFs = function() {
-        if (window.location.protocol != "file:") {
-            $('a').each(function() {
-                var href = $(this).attr('href');
-                $(this).attr('href', '.' + href);
-            });
-        }
-    }
-
     my.getParameterByName = function (name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
