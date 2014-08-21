@@ -50,6 +50,8 @@
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
 
+            dom_dfd.then(UTIL.adjustHREFs);
+            
             //Make api call to get group
             //then wait for the page to load if necessary
             //then render the group data to the UI

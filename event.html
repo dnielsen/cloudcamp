@@ -74,6 +74,8 @@
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
             
+            dom_dfd.then(UTIL.adjustHREFs);
+            
             getGroupInfo()
             .then(dom_dfd)
             .then(renderGroupInfo);
@@ -91,7 +93,7 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <a href="./index.html"><img id="logo-img"src=""></a>
+                    <a href="/index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">

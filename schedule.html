@@ -79,6 +79,8 @@
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
 
+            dom_dfd.then(UTIL.adjustHREFs);
+            
             // Retrieve group details then wait for page to load (if necessary) and render the group data
             getGroupInfo()
             .then(dom_dfd)
