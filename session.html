@@ -17,37 +17,47 @@
                 return UTIL.campsite('/groups/'+CONFIG.community, {'fields': "name,groupAvatar.filename"});
             };
 
-            var getSpeakersInfo = function (event_id) {
-                return UTIL.campsite('/session_speakers', { 'session': 'event_id='+event_id, 'verbose': '' });
-            };
-
             var renderGroupDetails = function (groupData) {
-                $("a[href='event.html']").attr('href', 'event.html?id='+event_id);
-
                 $('.group-title').html(groupData.name);
                 if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
                     $("#logo-img").attr("src", groupData.groupAvatar.uri);
                 }
             };
 
-            var renderSpeakers = function(speakers) {
-                var table = $("#speakers");
-                
-                _.each(speakers, function(s) {
-                    var table_row = (new String("<tr><td>{name}</td><td>{title}</td><td>{org}</td><td><a href='{session_url}'>{session}</a></td></tr>"))
-                    .replace(/{name}/, s.speaker.name || "")
-                    .replace(/{title}/, s.speaker.title || "")
-                    .replace(/{org}/, s.speaker.organization || "")
-                    .replace(/{session}/, s.session.name || "")
-                    .replace(/{session_url}/, "session?id="+s.session.id || "");
-
-                    table.append(table_row);
-                });
+            var getSession = function (session_id) {
+                return UTIL.campsite('sessions/'+session_id, { 'fields': 'id,name,content,room,event_id,starts_at,ends_at,date'});
             };
 
-            // save the event_id from the current page's 'id' query parameter
-            var event_id = parseInt(UTIL.getParameterByName('id'));
-            if(!_.isNumber(event_id)) {
+            var getSpeakers = function(session_id) {
+                return UTIL.campsite('session_speakers', { 'session_id': session_id, "fields": "speaker.name" });
+            }
+
+            var renderSession = function(session_response, speakers_response) {
+                var session = session_response[0];
+                var speakers = speakers_response[0];
+
+                $("a[href='event.html']").attr('href', 'event.html?id='+session.event_id);
+
+                var table = $("#session");
+
+                var speakers_str = _.map(speakers, function(s) { return s.speaker.name; }).join(", ");
+                var title_data = session.name + "<br/>(" + speakers_str + ')';
+                var date_str = (new Date(session.date)).toLocaleDateString("en-US");
+                var when_where = "Room: " + session.room + "<br/>" + 
+                                date_str + "<br/>" + 
+                                UTIL.getTimeRangeString(session.starts_at, session.ends_at);
+                
+                var table_row = (new String("<tr><td>{name}</td><td>{ww}</td><td>{content}</td></tr>"))
+                .replace(/{name}/, title_data || "")
+                .replace(/{ww}/, when_where || "")
+                .replace(/{content}/, session.content || "");
+
+                table.append(table_row);
+            };
+
+            // save the session_id from the current page's 'id' query parameter
+            var session_id = parseInt(UTIL.getParameterByName('id'));
+            if(!_.isNumber(session_id)) {
                 alert("Invalid id");
             }
 
@@ -63,9 +73,9 @@
             //Make api call to get speaker data
             //then wait for the page to load if necessary
             //then render the speaker data to the UI
-            getSpeakersInfo(event_id)
+            $.when(getSession(session_id), getSpeakers(session_id))
             .then(dom_dfd)
-            .then(renderSpeakers);
+            .then(renderSession);
 
         </script>
     </head>
@@ -88,17 +98,16 @@
                 </div>
                 <div id="main">
                     <div class="content left">
-                        <h1>Speakers</h1>
+                        <h1>Session</h1>
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Title</th>
-                                    <th>Organization</th>
-                                    <th>Sessions</th>
+                                    <th style="width:150px;">Title</th>
+                                    <th style="width:125px;">When-Where</th>
+                                    <th style="width:250px;">Details</th>
                                 </tr>
                             </thead>
-                            <tbody id="speakers"><!-- js fill in here --></tbody>
+                            <tbody id="session"><!-- js fill in here --></tbody>
                         </table>
                     </div>
                     <div class="sidebar right">

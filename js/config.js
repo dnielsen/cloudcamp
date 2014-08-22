@@ -7,7 +7,7 @@ var CONFIG = (function(){
     // private attributes or functions are just local to this scope
     // public attributes or functions are assigned to the return value 'my'
 
-    my.baseHost = "http://api.campsite.org";
+    my.baseHost = "http://localhost:3000"; //"http://api.campsite.org";
     my.community = 21;
 
     return my;
