@@ -91,7 +91,7 @@
             };            
 
             var getSponsorships = function (filter_field, filter_value) {
-                var queryParameters = { 'fields': 'level,sponsor', 'status': 'sponsoring' };
+                var queryParameters = { 'fields': 'level,sponsor', 'status': 'sponsoring', 'sort_by': 'level' };
                 queryParameters[filter_field] = filter_value;
                 return UTIL.campsite('sponsorships', queryParameters);
             };
@@ -101,7 +101,8 @@
                 var sponsorDiv = $('.sponsors-sidebar');
                 var sponsorsHtml = '';
 
-                _.each(sponsorships, function(sponsorship) {
+                var unique_sponsorships = _.uniq(sponsorships, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
+                _.each(unique_sponsorships, function(sponsorship) {
                     var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
                     sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
                     sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
@@ -164,7 +165,7 @@
 
             //Find subgroup of this community matching provided slug
             getGroupId(SLUG)
-            
+
             // If the group was found, locate the closest event within that group
             .done( function(gid) {
                 getEvent(gid)

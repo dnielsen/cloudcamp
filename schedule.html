@@ -28,7 +28,7 @@
                     event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
                     first_iteration = false;
                 });
-                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'status': 'sponsoring' });
+                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'sort_by': 'level', 'status': 'sponsoring' });
             };
 
             var renderGroupInfo = function(group_info) {
@@ -70,8 +70,10 @@
             };
 
             var renderSponsorships = function(sponsorships) {
+                var unique_sponsorships = _.uniq(sponsorships, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
+                
                 var sponsorsHtml = '';
-                _.each(sponsorships, function(sponsorship) {
+                _.each(unique_sponsorships, function(sponsorship) {
                     sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
                 });
                 $('#sponsors-sidebar').html(sponsorsHtml);

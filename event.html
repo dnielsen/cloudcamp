@@ -52,7 +52,7 @@
             };
 
             var getSponsorships = function () {
-                return UTIL.campsite('sponsorships', { 'event_id': id, 'fields': 'level,sponsor', 'status': 'sponsoring' });
+                return UTIL.campsite('sponsorships', { 'event_id': id, 'fields': 'level,sponsor', 'status': 'sponsoring', 'sort_by': 'level' });
             };
 
             var renderSponsorships = function(sponsorships) {
@@ -60,7 +60,8 @@
                 var sponsorDiv = $('.sponsors-sidebar');
                 var sponsorsHtml = '';
 
-                _.each(sponsorships, function(sponsorship) {
+                var unique_sponsorships = _.uniq(sponsorships, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
+                _.each(unique_sponsorships, function(sponsorship) {
                     var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
                     sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
                     sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
@@ -93,7 +94,7 @@
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <a href="index.html"><img id="logo-img"src=""></a>
+                    <a href="../index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">

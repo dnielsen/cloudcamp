@@ -54,16 +54,19 @@
             var getSponsorships = function (events) {
                 var event_ids = '';
                 var first_iteration = true;
+
                 _.each(events, function (event) {
                     event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
                     first_iteration = false;
                 });
-                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'status': 'sponsoring' });
+                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'sort_by': 'level', 'status': 'sponsoring' });
             };
 
-            var renderSponsorships = function(data) {
+            var renderSponsorships = function(sponsors_data) {
+                var unique_sponsors = _.uniq(sponsors_data, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
+                
                 var sponsorsHtml = '';
-                _.each(data, function(sponsorship) {
+                _.each(unique_sponsors, function(sponsorship) {
                     sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
                 });
                 $('#sponsors-sidebar').html(sponsorsHtml);
