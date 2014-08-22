@@ -17,20 +17,6 @@
                 return UTIL.campsite('groups/'+CONFIG.community, { 'fields': "name,description,groupAvatar.filename" });
             };
 
-            var getEvents = function () {
-                return UTIL.campsite('groups/'+CONFIG.community+'/events');
-            };
-
-            var getSponsorships = function (events) {
-                var event_ids = '';
-                var first_iteration = true;
-                _.each(events, function (event) {
-                    event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
-                    first_iteration = false;
-                });
-                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'status': 'sponsoring' });
-            };
-
             var renderGroupInfo = function(group_info) {
                 document.title = group_info.name;
                 $('.group-title').html(group_info.name);
@@ -38,6 +24,10 @@
                 if(_.has(group_info,"groupAvatar") && _.has(group_info.groupAvatar,"uri")) {
                     $("#logo-img").attr("src", group_info.groupAvatar.uri);
                 }
+            };
+
+            var getEvents = function () {
+                return UTIL.campsite('groups/'+CONFIG.community+'/events');
             };
 
             var renderEvents = function (events) {
@@ -59,6 +49,16 @@
                         evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
                     selector.prepend(evt_temp);
                 });
+            };
+
+            var getSponsorships = function (events) {
+                var event_ids = '';
+                var first_iteration = true;
+                _.each(events, function (event) {
+                    event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
+                    first_iteration = false;
+                });
+                return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'status': 'sponsoring' });
             };
 
             var renderSponsorships = function(data) {

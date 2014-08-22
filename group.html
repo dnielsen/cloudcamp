@@ -13,121 +13,172 @@
 
         <script id="addJS">
 
-            var slug = UTIL.getParameterByName('slug');
-            window.history.replaceState(null, '', slug);
-            
-            $.getJSON('properties.json', function(properties) {
-                var communityURI = CONFIG.baseHost + '/groups/'+CONFIG.community+'?fields=name,groupAvatar.filename';
+            var getGroupInfo = function () {
+                return UTIL.campsite('groups/'+CONFIG.community, { 'fields': "name,description,groupAvatar.filename" });
+            };
 
-                $.getJSON(communityURI, function(data) {
-                    $('.group-title').html(data.name);
-                    if(_.has(data,"groupAvatar") && _.has(data.groupAvatar,"uri")) {
-                        $("#logo-img").attr("src", data.groupAvatar.uri);
-                    }
-                });
+            var renderGroupInfo = function(group_info) {
+                $('.group-title').html(group_info.name);
+                if(_.has(group_info,"groupAvatar") && _.has(group_info.groupAvatar,"uri")) {
+                    $("#logo-img").attr("src", group_info.groupAvatar.uri);
+                }
+            };
 
-                var mappings = properties.slugs;
-                if(!_.has(mappings, slug)) {
-                    $(".content").append('<p>The group ' + slug + ' does not exist on this site.</p>');
-                    return;
-                } 
+            var getGroupId = function (slug) {
+                var dfd = $.Deferred();
 
-                var gid = mappings[slug];
-                var fields            = 'fields=id,starts_at,ends_at,name,content,external_url,parent_group.slug&';
-                var event_data_uri    = CONFIG.baseHost + '/events?'+fields+'sort_by=starts_at&private=0&group_id='+gid;
-                var group_sponsorsURI = CONFIG.baseHost + '/sponsorships?status=sponsoring&group_id='+gid;
-                var event_sponsorsURI = CONFIG.baseHost + '/sponsorships?status=sponsoring&event_id={eid}';
-
-                $.getJSON(event_data_uri, function(groupEvents) {
-                    var the_event;
-                    var is_upcoming = true;
-                    
-                    var now = Date.now();
-                    var upcoming = [];
-                    var past = [];
-                    _.each(groupEvents, function(event) {
-                        var starts_at = new Date(event.starts_at);
-                        var ends_at = new Date(event.ends_at);
-                        if( starts_at.getTime() > now)
-                            upcoming.unshift(event);
-                        else if(ends_at.getTime() < now)
-                            past.push(event);
+                UTIL.campsite('groups', { 'parentGroup_id': CONFIG.community, 'fields': "id,relativeSlug" })
+                .then( function(groupSlugs) {
+                    // Find and save the id of the matching slug if there is one
+                    var matchingGroup = _.find(groupSlugs, function(groupEntry) {
+                        return groupEntry.relativeSlug === slug;
                     });
 
-                    if(upcoming.length > 0) {
-                        the_event = upcoming[0];
-                    } else if(past.length > 0) {
-                        the_event = past[0];
-                        is_upcoming = false;
-                    }
-
-                    var regBtn = $('#register-button');
-                    if(_.isUndefined(the_event)) {
-                        var group_uri = "http://api.campsite.org/groups/"+gid+"?fields=description,name,groupAvatar.filename";
-                        $.getJSON(group_uri, function(group_data) {
-                            document.title = group_data.name;
-                            regBtn.remove();
-                            $("#event-title").html(group_data.name);
-                            $("#content").html( decodeURIComponent(group_data.description) );
-                            if(_.has(group_data,"groupAvatar") && _.has(group_data.groupAvatar,"uri")) {
-                                $("#logo-img").attr("src", group_data.groupAvatar.uri);
-                            }
-                        });
-
-                        $.getJSON(group_sponsorsURI, function(data) {
-
-                            var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
-                            var sponsorDiv = $('.sponsors-sidebar');
-                            var sponsorsHtml = '';
-
-                            _.each(data, function(sponsorship) {
-                                var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
-                                sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
-                                sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
-                                sponsorsHtml += sponsor_html;
-                            });
-                            sponsorDiv.append(sponsorsHtml);
-
-                        });
-
+                    if( !matchingGroup ) {
+                        dfd.reject();
                     } else {
-                        document.title = the_event.name;
-                        if(!is_upcoming) {
-                            regBtn.remove();
-                        } else {
-                            regBtn.attr('target', '_blank');
-                            if (the_event.external_url !== null) {
-                                regBtn.attr('href', the_event.external_url);
-                            } else {
-                                regBtn.attr('href', 
-                                    'http://www.campsite.org/'+the_event.parent_group.slug+'/event/'+the_event.id);
-                            }
-                        }
-                        
-                        var starts_at = new Date(the_event.starts_at);
-                        var date_str = "(" + UTIL.getDate(starts_at) + ")";
-                        $("#event-title").html(the_event.name + " " + date_str );
-                        $("#content").html( decodeURIComponent(the_event.content) );
+                        GROUP_ID = matchingGroup.id;
+                        dfd.resolve(); //return the group id
+                    }
+                })
+                .fail( function() {  dfd.reject(); });
 
+                return dfd.promise();
+            };
 
-                        $.getJSON(event_sponsorsURI.replace(/{eid}/, the_event.id), function(data) {
+            var getClosestEvent = function (groupEvents) {
+                if( groupEvents.length === 0)
+                    return null;
 
-                            var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
-                            var sponsorDiv = $('.sponsors-sidebar');
-                            var sponsorsHtml = '';
+                var the_event;
+                var is_upcoming = true;
+                
+                var now = Date.now();
+                var upcoming = [];
+                var past = [];
+                _.each(groupEvents, function(event) {
+                    var starts_at = new Date(event.starts_at);
+                    var ends_at = new Date(event.ends_at);
+                    if( starts_at.getTime() > now)
+                        upcoming.unshift(event);
+                    else if(ends_at.getTime() < now)
+                        past.push(event);
+                });
 
-                            _.each(data, function(sponsorship) {
-                                var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
-                                sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
-                                sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
-                                sponsorsHtml += sponsor_html;
-                            });
-                            sponsorDiv.append(sponsorsHtml);
-                            
-                        });
+                if(upcoming.length > 0) {
+                    the_event = upcoming[0];
+                } else if(past.length > 0) {
+                    the_event = past[0];
+                    is_upcoming = false;
+                }
+
+                return { "e": the_event, "is_upcoming": is_upcoming };
+            };
+
+            var getEvent = function () {                
+                var dfd = $.Deferred();
+                UTIL.campsite('events', { 
+                    'sort_by': "starts_at", 
+                    'private': 0, 
+                    'group_id': GROUP_ID, 
+                    'fields': "id,starts_at,ends_at,name,content,external_url,parent_group.slug" 
+                }).then( function (groupEvents) {
+                    var evt = getClosestEvent(groupEvents);
+                    evt ? dfd.resolve(evt) : dfd.reject();
+                });
+
+                return dfd.promise();
+            };            
+
+            var getSponsorships = function (filter_field, filter_value) {
+                var queryParameters = { 'fields': 'level,sponsor', 'status': 'sponsoring' };
+                queryParameters[filter_field] = filter_value;
+                return UTIL.campsite('sponsorships', queryParameters);
+            };
+
+            var renderSponsorships = function(sponsorships) {
+                var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
+                var sponsorDiv = $('.sponsors-sidebar');
+                var sponsorsHtml = '';
+
+                _.each(sponsorships, function(sponsorship) {
+                    var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
+                    sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
+                    sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
+                    sponsorsHtml += sponsor_html;
+                });
+                sponsorDiv.append(sponsorsHtml);
+            };
+
+            var handleGroup = function() {
+                var group_uri = CONFIG.baseHost + "/groups/"+GROUP_ID+"?fields=description,name,groupAvatar.filename";
+                $.getJSON(group_uri, function(group_data) {
+                    document.title = group_data.name;
+                    $('#register-button').remove();
+                    $("#event-title").html(group_data.name);
+                    $("#content").html( decodeURIComponent(group_data.description) );
+                    if(_.has(group_data,"groupAvatar") && _.has(group_data.groupAvatar,"uri")) {
+                        $("#logo-img").attr("src", group_data.groupAvatar.uri);
                     }
                 });
+
+                getSponsorships('group_id',GROUP_ID).then(renderSponsorships);
+            };
+
+            var handleEvent = function(event_data) {
+                var evt = event_data.e;
+
+                getSponsorships('event_id',evt.id).then(renderSponsorships);
+
+                document.title = evt.name;
+                var starts_at = new Date(evt.starts_at);
+                var date_str = "(" + UTIL.getDate(starts_at) + ")";
+                $("#event-title").html(evt.name + " " + date_str );
+                $("#content").html( (evt.content) );
+                $("a[href='event_speakers.html']").attr('href', 'event_speakers.html?id='+evt.id);
+
+                var regBtn = $('#register-button');
+                if(!event_data.is_upcoming) {
+                    regBtn.remove();
+                } else {
+                    regBtn.attr('target', '_blank');
+                    if (evt.external_url !== null) {
+                        regBtn.attr('href', evt.external_url);
+                    } else {
+                        regBtn.attr('href', 'http://www.campsite.org/'+evt.parent_group.slug+'/event/'+evt.id);
+                    }
+                }
+            };
+
+            var SLUG = UTIL.getParameterByName('slug');
+            var GROUP_ID;
+            
+            var dom_dfd = $(document).ready().promise(); // resolved on page load
+            
+            window.history.replaceState(null, '', SLUG);
+
+            // Retrieve group details then wait for page to load (if necessary) and render the group data
+            getGroupInfo()
+            .then(dom_dfd)
+            .then(renderGroupInfo);
+
+            //Find subgroup of this community matching provided slug
+            getGroupId(SLUG)
+            
+            // If the group was found, locate the closest event within that group
+            .done( function(gid) {
+                getEvent(gid)
+                // Wait till DOM finishes loading
+                .then(dom_dfd)
+                // Render the details of the nearist event 
+                // or render group if no events exist yet
+                .then(handleEvent, handleGroup); 
+            })
+            // If no group found matching provided slug
+            .fail(function() {
+                $(".content").append('<p>The group ' + SLUG + ' does not exist on this site.</p>');
             });
+            
         </script>
     </head>
 
@@ -141,6 +192,7 @@
                     <ul class="left">
                         <li class="left"><a href="index.html" class="">Home</a></li>
                         <li class="left"><a href="schedule.html" class="">Schedule</a></li>
+                        <li class="left"><a href="event_speakers.html" class="">Speakers</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>
