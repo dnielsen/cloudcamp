@@ -178,7 +178,17 @@ var CAMPSITE = (function(){
 
     // Renders three column table rows in the table indicated by the selector string
     // The table row template knows {name}, {date}, {link}, {location} for each event of the community.
-    my.show_upcoming_events = function (table_selector, template) {
+    my.show_events = function (upcoming_selector_string, past_selector_string, template) {
+
+        var render_template = function (event, template) {
+            var starts_at = new Date(event.starts_at);
+            var event_html = new String(template);
+            event_html = event_html.replace(/{date}/, UTIL.getDate(starts_at));
+            event_html = event_html.replace(/{name}/, event.name);
+            event_html = event_html.replace(/{location}/, event.location);
+            event_html = event_html.replace(/{link}/, "event.html?id="+event.id);
+            return event_html;
+        };
 
         var render = function (events) {
             var now = new Date();
@@ -187,20 +197,18 @@ var CAMPSITE = (function(){
                 template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
             }
 
-            var selector = $(table_selector);
+            var upcoming_selector = $(upcoming_selector_string);
+            var past_selector = past_selector_string ? $(past_selector_string) : null;
+
             _.each(events, function (event) {
 
                 var starts_at = new Date(event.starts_at);
                 var ends_at = new Date(event.ends_at);
-                if(ends_at.getTime() < now.getTime()) {
-                    return;
+                if(ends_at.getTime() >= now.getTime()) {
+                    upcoming_selector.prepend(render_template(event,template));
+                } else if(past_selector_string && starts_at.getTime() < now.getTime()) {
+                    past_selector.append(render_template(event,template));
                 }
-
-                var evt_temp = template.replace(/{date}/, UTIL.getDate(starts_at));
-                    evt_temp = evt_temp.replace(/{name}/, event.name);
-                    evt_temp = evt_temp.replace(/{location}/, event.location);
-                    evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-                selector.prepend(evt_temp);
             });
         };
 
@@ -208,116 +216,6 @@ var CAMPSITE = (function(){
         .then( DOCUMENT_DFD )
         .then( render );
     };
-    // my.makeTable = function (tag_id, resource, template, queryParameters) {
-    //     var render = function(api_data) {
-    //         var selector = $('.' . tag_id );
-    //         _.each(api_data, function (element) {
-    //             _.each( -- template parameter --, function(param, function() {
-    //                 template.replace(/{param}/, element[param]);
-    //             }));
-
-    //             selector.append(evt_temp);
-    //         });
-
-    //     };
-
-    //     UTIL.campsite(resource, queryParameters)
-    //     .then(this.DOCUMENT_DFD)
-    //     .then(render);
-    // }
-
-
-
-    // my.makeSpeakersTable(tag_id, template, queryParameters) {
-    //     if ( !template ) {
-    //         var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
-    //     }
-
-    //     this.makeTable(tag_id, "session_speakers", template, queryParameters);
-    // }
-
-
-    // var getEvents = function () {
-    //     return UTIL.campsite('groups/'+COMMUNITY_ID+'/events');
-    // };
-
-    // var renderEvents = function (events) {
-    //     var now = new Date();
-    //     var template = "<tr class=\"eventListGroup_online\"><td>{date}</td><td><a href=\"{link}\">{name}</a></td><td>{location}</td></tr>";
-
-    //     var selector = $("#upcoming");
-    //     _.each(events, function (event) {
-
-    //         var starts_at = new Date(event.starts_at);
-    //         var ends_at = new Date(event.ends_at);
-    //         if(ends_at.getTime() < now.getTime()) {
-    //             return;
-    //         }
-
-    //         var evt_temp = template.replace(/{date}/, UTIL.getDate(starts_at));
-    //             evt_temp = evt_temp.replace(/{name}/, event.name);
-    //             evt_temp = evt_temp.replace(/{location}/, event.location);
-    //             evt_temp = evt_temp.replace(/{link}/, "event.html?id="+event.id);
-    //         selector.prepend(evt_temp);
-    //     });
-    // };
-
-    // var getSponsorships = function (events) {
-    //     var event_ids = '';
-    //     var first_iteration = true;
-
-    //     _.each(events, function (event) {
-    //         event_ids = event.id + (first_iteration ? '' : ',') + event_ids;
-    //         first_iteration = false;
-    //     });
-    //     return UTIL.campsite('sponsorships', { 'event_id': event_ids, 'fields': 'level,sponsor', 'sort_by': 'level', 'status': 'sponsoring' });
-    // };
-
-    // var renderSponsorships = function(sponsors_data) {
-    //     var unique_sponsors = _.uniq(sponsors_data, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
-        
-    //     var sponsorsHtml = '';
-    //     _.each(unique_sponsors, function(sponsorship) {
-    //         sponsorsHtml += '<li><a href="'+sponsorship.sponsor.url+'"><img src="'+sponsorship.sponsor.image_uri+'"></a></li>';
-    //     });
-    //     $('#sponsors-sidebar').html(sponsorsHtml);
-    // };
-
-
-    // // var dom_dfd = $(document).ready().promise(); // resolved on page load
-
-    // // // Retrieve group details then wait for page to load (if necessary) and render the group data
-    // // getGroupInfo()
-    // // .then(dom_dfd)
-    // // .then(renderGroupInfo);
-
-
-    // //Retrieve event details, remember the deferred instance
-    //var events_dfd = getEvents();
-
-    // Once event data is returned wait for the page to load (if necessary) then render the event data
-    // load_events()
-    // .then( DOCUMENT_DFD )
-    // .then( renderEvents );
-
-    // Once event data is returned use that data to construct sponsorship request
-    // after sponsorship data is returned wait for page to load (if necessary) then render the sponsors
-    // events_dfd
-    // .then( getSponsorships )
-    // .then( DOCUMENT_DFD )
-    // .then( renderSponsorships );
-
-
-
-
-
-
-
-
-
-
-
-
 
     return my;
 }());
