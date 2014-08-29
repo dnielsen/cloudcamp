@@ -15,15 +15,16 @@
         
         <script id="addJS">
 
-            COMMUNITY_ID = 21;
-            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", true);
-
             var id = parseInt(UTIL.getParameterByName('id'));
             if(!_.isNumber(id)) {
                 alert("Invalid id");
             }
 
+            COMMUNITY_ID = 21;
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", true);
             CAMPSITE.process_sponsors('#sponsors-sidebar', id);
+
+
             
             var getEvents = function () {
                 return UTIL.campsite('events/'+id, { 'fields': 'name,content,starts_at,location,external_url,parent_group.id,parent_group.slug,parent_group.relativeSlug' } );
@@ -50,35 +51,11 @@
                 }
             };
 
-            var getSponsorships = function () {
-                return UTIL.campsite('sponsorships', { 'event_id': id, 'fields': 'level,sponsor', 'status': 'sponsoring', 'sort_by': 'level' });
-            };
-
-            var renderSponsorships = function(sponsorships) {
-                var sponsorTemplate = '<li><a href="{link}"><img src="{image_url}" alt="{sponsor_name}"/></a></li>';
-                var sponsorDiv = $('.sponsors-sidebar');
-                var sponsorsHtml = '';
-
-                var unique_sponsorships = _.uniq(sponsorships, false, function(sponsor_data) { return sponsor_data.sponsor.id; });
-                _.each(unique_sponsorships, function(sponsorship) {
-                    var sponsor_html = sponsorTemplate.replace(/{link}/, sponsorship.sponsor.url);
-                    sponsor_html = sponsor_html.replace(/{image_url}/, sponsorship.sponsor.image_uri);
-                    sponsor_html = sponsor_html.replace(/{sponsor_name}/, sponsorship.sponsor.name);
-                    sponsorsHtml += sponsor_html;
-                });
-                sponsorDiv.append(sponsorsHtml);
-            };    
-
-            
-
             var dom_dfd = $(document).ready().promise(); // resolved on page load
 
             getEvents()
             .then(dom_dfd)
             .then(renderEvents);
-
-            getSponsorships()
-            .then(renderSponsorships);
 
         </script>
     </head>
