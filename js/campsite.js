@@ -102,7 +102,6 @@ var CAMPSITE = (function(){
         if(events_dfd) {
             return events_dfd;
         }
-
         return UTIL.campsite('groups/'+COMMUNITY_ID+'/events', queryParameters);
     }
 
@@ -137,7 +136,7 @@ var CAMPSITE = (function(){
     //To reuse an existing events api call pass in the 'events_dfd' deferrend object
     //Template will replace {sponsor_url} with the url of the sponsors home page
     // and {image_url} with the path to sponsor logo image
-    my.process_sponsors = function (sponsors_selector, template) {
+    my.process_sponsors = function (sponsors_selector, event_id, template) {
 
         var getSponsorships = function (events) {
             var event_ids = '';
@@ -170,8 +169,16 @@ var CAMPSITE = (function(){
 
         // Once event data is returned use that data to construct sponsorship request
         // after sponsorship data is returned wait for page to load (if necessary) then render the sponsors
-        load_events()
-        .then( getSponsorships )
+
+        var sponsorships_dfd = null;
+
+        if(!event_id) {
+            sponsorships_dfd = load_events().then( getSponsorships );
+        } else {
+            sponsorships_dfd = getSponsorships([ { "id" : event_id } ]);
+        }
+
+        sponsorships_dfd
         .then( DOCUMENT_DFD )
         .then( renderSponsorships );
     };

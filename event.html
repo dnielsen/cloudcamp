@@ -7,25 +7,24 @@
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>-->
+        <script type="text/javascript" src="js/underscore-min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="js/underscore-min.js"></script>
+        <script type="text/javascript" src="js/campsite.js"></script>
         
         <script id="addJS">
 
-            var getGroupInfo = function () {
-                return UTIL.campsite('groups/'+CONFIG.community, { 'fields': "name,description,,relativeSlug,groupAvatar.filename" });
-            };
+            COMMUNITY_ID = 21;
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", true);
 
-            var renderGroupInfo = function(group_info) {
-                $("a[href='../event_speakers.html']").attr('href', '../event_speakers.html?id='+id);
+            var id = parseInt(UTIL.getParameterByName('id'));
+            if(!_.isNumber(id)) {
+                alert("Invalid id");
+            }
 
-                $('.group-title').html(group_info.name);
-                if(_.has(group_info,"groupAvatar") && _.has(group_info.groupAvatar,"uri")) {
-                    $("#logo-img").attr("src", group_info.groupAvatar.uri);
-                }
-            };
-
+            CAMPSITE.process_sponsors('#sponsors-sidebar', id);
+            
             var getEvents = function () {
                 return UTIL.campsite('events/'+id, { 'fields': 'name,content,starts_at,location,external_url,parent_group.id,parent_group.slug,parent_group.relativeSlug' } );
             };
@@ -70,16 +69,9 @@
                 sponsorDiv.append(sponsorsHtml);
             };    
 
-            var id = parseInt(UTIL.getParameterByName('id'));
-            if(!_.isNumber(id)) {
-                alert("Invalid id");
-            }
+            
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
-            
-            getGroupInfo()
-            .then(dom_dfd)
-            .then(renderGroupInfo);
 
             getEvents()
             .then(dom_dfd)
