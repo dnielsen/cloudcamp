@@ -7,9 +7,8 @@
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-        <script type="text/javascript" src="js/utility.js"></script>
-        <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+        <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>-->
+        <script type="text/javascript" src="js/underscore-min.js"></script>
         <script type="text/javascript" src="js/campsite.js"></script>
         
         <script id="addJS">
@@ -54,13 +53,11 @@
                 alert("Invalid id");
             }
 
-            var dom_dfd = $(document).ready().promise(); // resolved on page load
-
             //Make api call to get speaker data
             //then wait for the page to load if necessary
             //then render the speaker data to the UI
             $.when(getSession(session_id), getSpeakers(session_id))
-            .then(dom_dfd)
+            .then(DOCUMENT_DFD)
             .then(renderSession);
 
         </script>
