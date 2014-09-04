@@ -7,39 +7,27 @@
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-        <script type="text/javascript" src="js/utility.js"></script>
-        <script type="text/javascript" src="js/config.js"></script>
+        <!--<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>-->
         <script type="text/javascript" src="js/underscore-min.js"></script>
-        
-        <script id="addJS">
+        <script type="text/javascript" src="js/campsite.js"></script>
 
-            var getGroupInfo = function (properties) {
-                return UTIL.campsite('/groups/'+CONFIG.community, {'fields': "name,groupAvatar.filename"});
-            };
+        <script id="addJS">
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", true);
 
             var getSpeakersInfo = function (event_id) {
+                CAMPSITE.process_sponsors('.sponsors-sidebar', event_id);
                 return UTIL.campsite('/session_speakers', { 'session': 'event_id='+event_id, 'verbose': '' });
-            };
-
-            var renderGroupDetails = function (groupData) {
-                $("a[href='event.html']").attr('href', 'event.html?id='+event_id);
-
-                $('.group-title').html(groupData.name);
-                if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
-                    $("#logo-img").attr("src", groupData.groupAvatar.uri);
-                }
             };
 
             var renderSpeakers = function(speakers) {
                 var table = $("#speakers");
-                
                 _.each(speakers, function(s) {
                     var table_row = (new String("<tr><td>{name}</td><td>{title}</td><td>{org}</td><td><a href='{session_url}'>{session}</a></td></tr>"))
                     .replace(/{name}/, s.speaker.name || "")
                     .replace(/{title}/, s.speaker.title || "")
                     .replace(/{org}/, s.speaker.organization || "")
                     .replace(/{session}/, s.session.name || "")
-                    .replace(/{session_url}/, "session?id="+s.session.id || "");
+                    .replace(/{session_url}/, "session.html?id="+s.session.id || "");
 
                     table.append(table_row);
                 });
@@ -51,21 +39,17 @@
                 alert("Invalid id");
             }
 
-            var dom_dfd = $(document).ready().promise(); // resolved on page load
-
-            //Make api call to get group
-            //then wait for the page to load if necessary
-            //then render the group data to the UI
-            getGroupInfo()
-            .then(dom_dfd)
-            .then(renderGroupDetails);
-
             //Make api call to get speaker data
             //then wait for the page to load if necessary
             //then render the speaker data to the UI
             getSpeakersInfo(event_id)
-            .then(dom_dfd)
-            .then(renderSpeakers);
+            .then(DOCUMENT_DFD)
+            .then(renderSpeakers)
+            .then( function() {
+                $("#event").attr('href', function() {
+                    return this + '?id='+event_id;
+                });
+            });
 
         </script>
     </head>
@@ -79,7 +63,7 @@
                     <ul class="left">
                         <li class="left"><a href="index.html" class="">Home</a></li>
                         <li class="left"><a href="schedule.html" class="">Schedule</a></li>
-                        <li class="left"><a href="event.html" class="">Event</a></li>
+                        <li class="left"><a href="event.html" id="event">Event</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>

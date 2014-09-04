@@ -9,67 +9,49 @@
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>-->
         <script type="text/javascript" src="js/underscore-min.js"></script>
-        <script type="text/javascript" src="js/utility.js"></script>
-        <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="js/campsite.js"></script>
         
         <script id="addJS">
-
             var id = parseInt(UTIL.getParameterByName('id'));
             if(!_.isNumber(id)) {
                 alert("Invalid id");
             }
 
-            COMMUNITY_ID = 21;
-            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", true);
-            CAMPSITE.process_sponsors('#sponsors-sidebar', id);
+            // Fix relative paths to work the same for hosted files and local files
+            //----------------------------------------------------------------------
+            // The code block below will make the correct adjustment to the file path 
+            // based on whether you opened it from your filesystem or from a webserver
+            // Note: When adding new local static content to the site:
+            // 1) Place file sibling to index.html
+            // 2) Set href of anchor tag to raw filename with no '../' or 'http://'' (e.g. example.html --> <a href='example.html'/> )
+            if (window.location.protocol != "file:") {
+                DOCUMENT_DFD.then( function() {
+                    $(function(){
+                        $('a').not('[href^="http"]').each( function(a) {
+                            $(this).attr('href', function(index, value) {
+                                return '../' + value;
+                            });
+                        });
+                    });
+                });
+            }
 
-
-            
-            var getEvents = function () {
-                return UTIL.campsite('events/'+id, { 'fields': 'name,content,starts_at,location,external_url,parent_group.id,parent_group.slug,parent_group.relativeSlug' } );
-            };
-
-            var renderEvents = function (events) {
-                document.title = events.name;
-
-                if (window.location.protocol != "file:") {
-                    window.history.replaceState({}, '', events.parent_group.relativeSlug+'/'+id);
-                }
-
-                var starts_at = new Date(events.starts_at);
-                var date_str = "(" + UTIL.getDate(starts_at) + ")";
-                $("#event-title").html(events.name + " " + date_str );
-                $("#content").html( decodeURIComponent(events.content) );
-                
-                var regBtn = $('#register-button');
-                regBtn.attr('target', '_blank');
-                if (events.external_url !== null) {
-                    regBtn.attr('href', events.external_url);
-                } else {
-                    regBtn.attr('href', 'http://www.campsite.org/'+events.parent_group.slug+'/event/'+id);
-                }
-            };
-
-            var dom_dfd = $(document).ready().promise(); // resolved on page load
-
-            getEvents()
-            .then(dom_dfd)
-            .then(renderEvents);
-
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", false);
+            CAMPSITE.process_sponsors('.sponsors-sidebar', id);
+            CAMPSITE.display_event(id, '#event-title', '#content', '#register-button', '#speakers', true);
         </script>
     </head>
     <body>
         <div id="wrap">
             <div class="shell">
                 <div id="header">
-                    <a href="../index.html"><img id="logo-img"src=""></a>
+                    <a href="index.html"><img id="logo-img"src=""></a>
                 </div>
                 <div id="nav">
                     <ul class="left">
                         <li class="left"><a href="index.html" class="">Home</a></li>
                         <li class="left"><a href="schedule.html" class="">Schedule</a></li>
-                        <li class="left"><a href="event_speakers.html" class="">Speakers</a></li>
+                        <li class="left"><a href="event_speakers.html" id='speakers'>Speakers</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>

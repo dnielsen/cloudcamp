@@ -2,7 +2,7 @@
 
 var DOCUMENT_DFD = $(document).ready().promise();
 var BASE_HOST = "http://api.campsite.org";
-var COMMUNITY_ID = 20;
+var COMMUNITY_ID = 21;
 
 //Create utility module to give utility functions a namespace
 var UTIL = (function(){
@@ -208,13 +208,16 @@ var CAMPSITE = (function(){
             var past_selector = past_selector_string ? $(past_selector_string) : null;
 
             _.each(events, function (event) {
+                var rendered_html = render_template(event, template);
 
                 var starts_at = new Date(event.starts_at);
                 var ends_at = new Date(event.ends_at);
+
                 if(ends_at.getTime() >= now.getTime()) {
-                    upcoming_selector.prepend(render_template(event,template));
-                } else if(past_selector_string && starts_at.getTime() < now.getTime()) {
-                    past_selector.append(render_template(event,template));
+                    upcoming_selector.prepend(rendered_html);
+                }
+                else if(past_selector_string && (starts_at.getTime() < now.getTime()) ) {
+                    past_selector.append(rendered_html);
                 }
             });
         };
@@ -222,6 +225,120 @@ var CAMPSITE = (function(){
         load_events()
         .then( DOCUMENT_DFD )
         .then( render );
+    };
+
+    my.display_event = function(event_id, title_selector, content_selector, register_selector, speakers_selector, set_title) {
+        var getEvent = function () {
+            return UTIL.campsite('events/'+event_id, { 'fields': 'name,content,starts_at,location,external_url,parent_group.id,parent_group.slug,parent_group.relativeSlug' } );
+        };
+
+        var renderEvent = function (event) {
+
+            if(set_title) {
+                document.title = event.name;
+            }
+
+            if (window.location.protocol != "file:") {
+                window.history.replaceState({}, '', event.parent_group.relativeSlug+'/'+event_id);
+            }
+
+            var starts_at = new Date(event.starts_at);
+            var date_str = "(" + UTIL.getDate(starts_at) + ")";
+
+            $(title_selector).html(event.name + " " + date_str );
+            $(content_selector).html( decodeURIComponent(event.content) );
+
+            var regBtn = $(register_selector);
+            regBtn.attr('target', '_blank');
+            if (event.external_url !== null) {
+                regBtn.attr('href', event.external_url);
+            } else {
+                regBtn.attr('href', 'http://www.campsite.org/'+event.parent_group.slug+'/event/'+event_id);
+            }
+
+            $(speakers_selector).attr('href', function() {
+                this.href += '?id=' + event_id;
+            });
+        };
+
+        getEvent()
+        .then(DOCUMENT_DFD)
+        .then(renderEvent);
+    };
+
+    my.group_by_slug = function (slug) {
+        var dfd = $.Deferred();
+
+        UTIL.campsite('groups', { 'parentGroup_id': CONFIG.community, 'fields': "id,relativeSlug" })
+        .then( function(groupSlugs) {
+            // Find and save the id of the matching slug if there is one
+            var matchingGroup = _.find(groupSlugs, function(groupEntry) {
+                return groupEntry.relativeSlug === slug;
+            });
+
+            if( !matchingGroup ) {
+                dfd.reject();
+            } else {
+                dfd.resolve(matchingGroup.id); //return the group id
+            }
+        })
+        .fail( function() {  dfd.reject(); });
+
+        return dfd.promise();
+    };
+
+    my.closest_event = function (groupEvents) {
+        if( groupEvents.length === 0)
+            return null;
+
+        var the_event;
+        var is_upcoming = true;
+
+        var now = Date.now();
+        var upcoming = [];
+        var past = [];
+        _.each(groupEvents, function(event) {
+            var starts_at = new Date(event.starts_at);
+            var ends_at = new Date(event.ends_at);
+            if( starts_at.getTime() > now)
+                upcoming.unshift(event);
+            else if(ends_at.getTime() < now)
+                past.push(event);
+        });
+
+        if(upcoming.length > 0) {
+            the_event = upcoming[0];
+        } else if(past.length > 0) {
+            the_event = past[0];
+            is_upcoming = false;
+        }
+
+        return { "e": the_event, "is_upcoming": is_upcoming };
+    };
+
+    my.getEvent = function (group_id) {
+        var dfd = $.Deferred();
+        UTIL.campsite('events', {
+            'sort_by': "starts_at",
+            'private': 0,
+            'group_id': group_id,
+            'fields': "id,starts_at,ends_at,name,content,external_url,parent_group.slug"
+        }).then( function (groupEvents) {
+            var evt = my.closest_event(groupEvents);
+            evt ? dfd.resolve(evt) : dfd.reject();
+        });
+
+        return dfd.promise();
+    };
+
+    my.process_event_by_group_slug = function (slug, event_callback, group_callback, failure_callback) {
+        this.group_by_slug(slug)
+        .done( function(gid) {
+            my.getEvent(gid)
+            .then(DOCUMENT_DFD)
+            .then(event_callback, group_callback)
+        })
+        .fail(failure_callback);
     };
 
     return my;

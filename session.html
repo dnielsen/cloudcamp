@@ -9,20 +9,10 @@
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="js/underscore-min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+        <script type="text/javascript" src="js/campsite.js"></script>
         
         <script id="addJS">
-
-            var getGroupInfo = function (properties) {
-                return UTIL.campsite('/groups/'+CONFIG.community, {'fields': "name,groupAvatar.filename"});
-            };
-
-            var renderGroupDetails = function (groupData) {
-                $('.group-title').html(groupData.name);
-                if(_.has(groupData,"groupAvatar") && _.has(groupData.groupAvatar,"uri")) {
-                    $("#logo-img").attr("src", groupData.groupAvatar.uri);
-                }
-            };
 
             var getSession = function (session_id) {
                 return UTIL.campsite('sessions/'+session_id, { 'fields': 'id,name,content,room,event_id,starts_at,ends_at,date'});
@@ -55,6 +45,9 @@
                 table.append(table_row);
             };
 
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", false);
+            CAMPSITE.process_sponsors('.sponsors-sidebar');
+
             // save the session_id from the current page's 'id' query parameter
             var session_id = parseInt(UTIL.getParameterByName('id'));
             if(!_.isNumber(session_id)) {
@@ -62,13 +55,6 @@
             }
 
             var dom_dfd = $(document).ready().promise(); // resolved on page load
-
-            //Make api call to get group
-            //then wait for the page to load if necessary
-            //then render the group data to the UI
-            getGroupInfo()
-            .then(dom_dfd)
-            .then(renderGroupDetails);
 
             //Make api call to get speaker data
             //then wait for the page to load if necessary

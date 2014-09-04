@@ -9,87 +9,10 @@
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="js/utility.js"></script>
         <script type="text/javascript" src="js/config.js"></script>
-        <script type="text/javascript" src="js/underscore-min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+        <script type="text/javascript" src="js/campsite.js"></script>
 
         <script id="addJS">
-
-            var getGroupInfo = function () {
-                return UTIL.campsite('groups/'+CONFIG.community, { 'fields': "name,description,groupAvatar.filename" });
-            };
-
-            var renderGroupInfo = function(group_info) {
-                $('.group-title').html(group_info.name);
-                if(_.has(group_info,"groupAvatar") && _.has(group_info.groupAvatar,"uri")) {
-                    $("#logo-img").attr("src", group_info.groupAvatar.uri);
-                }
-            };
-
-            var getGroupId = function (slug) {
-                var dfd = $.Deferred();
-
-                UTIL.campsite('groups', { 'parentGroup_id': CONFIG.community, 'fields': "id,relativeSlug" })
-                .then( function(groupSlugs) {
-                    // Find and save the id of the matching slug if there is one
-                    var matchingGroup = _.find(groupSlugs, function(groupEntry) {
-                        return groupEntry.relativeSlug === slug;
-                    });
-
-                    if( !matchingGroup ) {
-                        dfd.reject();
-                    } else {
-                        GROUP_ID = matchingGroup.id;
-                        dfd.resolve(); //return the group id
-                    }
-                })
-                .fail( function() {  dfd.reject(); });
-
-                return dfd.promise();
-            };
-
-            var getClosestEvent = function (groupEvents) {
-                if( groupEvents.length === 0)
-                    return null;
-
-                var the_event;
-                var is_upcoming = true;
-                
-                var now = Date.now();
-                var upcoming = [];
-                var past = [];
-                _.each(groupEvents, function(event) {
-                    var starts_at = new Date(event.starts_at);
-                    var ends_at = new Date(event.ends_at);
-                    if( starts_at.getTime() > now)
-                        upcoming.unshift(event);
-                    else if(ends_at.getTime() < now)
-                        past.push(event);
-                });
-
-                if(upcoming.length > 0) {
-                    the_event = upcoming[0];
-                } else if(past.length > 0) {
-                    the_event = past[0];
-                    is_upcoming = false;
-                }
-
-                return { "e": the_event, "is_upcoming": is_upcoming };
-            };
-
-            var getEvent = function () {                
-                var dfd = $.Deferred();
-                UTIL.campsite('events', { 
-                    'sort_by': "starts_at", 
-                    'private': 0, 
-                    'group_id': GROUP_ID, 
-                    'fields': "id,starts_at,ends_at,name,content,external_url,parent_group.slug" 
-                }).then( function (groupEvents) {
-                    var evt = getClosestEvent(groupEvents);
-                    evt ? dfd.resolve(evt) : dfd.reject();
-                });
-
-                return dfd.promise();
-            };            
-
             var getSponsorships = function (filter_field, filter_value) {
                 var queryParameters = { 'fields': 'level,sponsor', 'status': 'sponsoring', 'sort_by': 'level' };
                 queryParameters[filter_field] = filter_value;
@@ -118,11 +41,11 @@
                     $('#register-button').remove();
                     $("#event-title").html(group_data.name);
                     $("#content").html( decodeURIComponent(group_data.description) );
+
                     if(_.has(group_data,"groupAvatar") && _.has(group_data.groupAvatar,"uri")) {
                         $("#logo-img").attr("src", group_data.groupAvatar.uri);
                     }
                 });
-
                 getSponsorships('group_id',GROUP_ID).then(renderSponsorships);
             };
 
@@ -136,7 +59,7 @@
                 var date_str = "(" + UTIL.getDate(starts_at) + ")";
                 $("#event-title").html(evt.name + " " + date_str );
                 $("#content").html( (evt.content) );
-                $("a[href='event_speakers.html']").attr('href', 'event_speakers.html?id='+evt.id);
+                $('#event').attr('href', 'event_speakers.html?id='+evt.id);
 
                 var regBtn = $('#register-button');
                 if(!event_data.is_upcoming) {
@@ -152,31 +75,32 @@
             };
 
             var SLUG = UTIL.getParameterByName('slug');
-            var GROUP_ID;
-            
-            var dom_dfd = $(document).ready().promise(); // resolved on page load
-            
             window.history.replaceState(null, '', SLUG);
 
-            // Retrieve group details then wait for page to load (if necessary) and render the group data
-            getGroupInfo()
-            .then(dom_dfd)
-            .then(renderGroupInfo);
+            // Fix relative paths to work the same for hosted files and local files
+            //----------------------------------------------------------------------
+            // The code block below will make the correct adjustment to the file path
+            // based on whether you opened it from your filesystem or from a webserver
+            // Note: When adding new local static content to the site:
+            // 1) Place file sibling to index.html
+            // 2) Set href of anchor tag to raw filename with no '../' or 'http://'' (e.g. example.html --> <a href='example.html'/> )
+            if (window.location.protocol != "file:") {
+                DOCUMENT_DFD.then( function() {
+                    $(function(){
+                        $('a').not('[href^="http"]').each( function(a) {
+                            $(this).attr('href', function(index, value) {
+                                return '../' + value;
+                            });
+                        });
+                    });
+                });
+            }
 
+            CAMPSITE.process_community('.group-title', "#desc", "#logo-img", false);
+            
             //Find subgroup of this community matching provided slug
-            getGroupId(SLUG)
-
-            // If the group was found, locate the closest event within that group
-            .done( function(gid) {
-                getEvent(gid)
-                // Wait till DOM finishes loading
-                .then(dom_dfd)
-                // Render the details of the nearist event 
-                // or render group if no events exist yet
-                .then(handleEvent, handleGroup); 
-            })
-            // If no group found matching provided slug
-            .fail(function() {
+            var GROUP_ID;
+            CAMPSITE.process_event_by_group_slug(SLUG, handleEvent, handleGroup, function() {
                 $(".content").append('<p>The group ' + SLUG + ' does not exist on this site.</p>');
             });
             
@@ -193,7 +117,7 @@
                     <ul class="left">
                         <li class="left"><a href="index.html" class="">Home</a></li>
                         <li class="left"><a href="schedule.html" class="">Schedule</a></li>
-                        <li class="left"><a href="event_speakers.html" class="">Speakers</a></li>
+                        <li class="left"><a href="event_speakers.html" id="event">Speakers</a></li>
                         <li class="left reg"><a href="http://campsite.org/account/register">Register</a></li>
                         <li class="left reg"><a href="http://campsite.org/login">Sign in</a></li>
                     </ul>
