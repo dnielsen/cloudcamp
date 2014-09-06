@@ -269,7 +269,7 @@ var CAMPSITE = (function(){
     my.group_by_slug = function (slug) {
         var dfd = $.Deferred();
 
-        UTIL.campsite('groups', { 'parentGroup_id': CONFIG.community, 'fields': "id,relativeSlug" })
+        UTIL.campsite('groups', { 'parentGroup_id': COMMUNITY_ID, 'fields': "id,relativeSlug" })
         .then( function(groupSlugs) {
             // Find and save the id of the matching slug if there is one
             var matchingGroup = _.find(groupSlugs, function(groupEntry) {

@@ -7,8 +7,6 @@
         <link type="text/css" rel="stylesheet" href="css/cloudcamp.css" />
                 
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-        <script type="text/javascript" src="js/utility.js"></script>
-        <script type="text/javascript" src="js/config.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
         <script type="text/javascript" src="js/campsite.js"></script>
 
@@ -35,7 +33,7 @@
             };
 
             var handleGroup = function() {
-                var group_uri = CONFIG.baseHost + "/groups/"+GROUP_ID+"?fields=description,name,groupAvatar.filename";
+                var group_uri = BASE_HOST + "/groups/"+GROUP_ID+"?fields=description,name,groupAvatar.filename";
                 $.getJSON(group_uri, function(group_data) {
                     document.title = group_data.name;
                     $('#register-button').remove();
